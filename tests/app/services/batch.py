@@ -28,10 +28,10 @@ def add(ref: str, sku: str, qty: int, eta: Optional[date],
         uow: AbstractUnitOfWork[Product]) -> None:
     """UOW를 이용해 배치를 추가합니다."""
     with uow:
-        product = uow.items.get(sku)
+        product = uow.repos.get(sku)
         if not product:
             product = Product(sku, batches=[])
-            uow.items.add(product)
+            uow.repos.add(product)
         product.batches.append(Batch(ref, sku, qty, eta))
         uow.commit()
 
@@ -45,7 +45,7 @@ def allocate(orderid: str, sku: str, qty: int,
     """
     line = OrderLine(orderid, sku, qty)
     with uow:
-        product = uow.items.get(sku=line.sku)
+        product = uow.repos.get(sku=line.sku)
         if product is None:
             raise InvalidSku(f'Invalid sku {line.sku}')
         batchref = product.allocate(line)

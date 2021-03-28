@@ -28,7 +28,7 @@ class AbstractUnitOfWork(Generic[T], AbstractContextManager[Session]):
     UnitOfWork(UoW)는 영구 저장소의 유일한 진입점이며, 로드된 객체의
     최신 상태를 계속 트래킹 합니다.
     """
-    items: AbstractRepository[T]
+    repos: AbstractRepository[T]
 
     def __enter__(self) -> AbstractUnitOfWork[T]:
         """``with`` 블록에 진입했을때 실행되는 메소드입니다."""

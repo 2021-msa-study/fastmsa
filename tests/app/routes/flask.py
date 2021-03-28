@@ -4,10 +4,10 @@ from datetime import datetime
 
 from flask import request, jsonify
 
-from app.apps.flask import route, FlaskResponse
-from app.services.uow import SqlAlchemyUnitOfWork
-from app.domain.models import OrderLine, allocate
-from app import services
+from tests.app.apps.flask import route, FlaskResponse
+from tests.app.services.uow import SqlAlchemyUnitOfWork
+from tests.app.domain.models import OrderLine, allocate
+from tests.app import services
 
 
 @route("/batches", methods=['POST'])

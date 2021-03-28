@@ -57,7 +57,7 @@ class FakeProductRepository(FakeRepository[Product]):
 
 class FakeUnitOfWork(AbstractUnitOfWork[Product]):
     def __init__(self) -> None:
-        self.items = FakeProductRepository([])
+        self.repos = FakeProductRepository([])
         self.committed = False
 
     def commit(self) -> None:
@@ -70,7 +70,7 @@ class FakeUnitOfWork(AbstractUnitOfWork[Product]):
 def test_add_batch() -> None:
     uow = FakeUnitOfWork()
     services.batch.add("b1", "CRUNCHY-ARMCHAIR", 100, None, uow)
-    assert uow.batches.get("b1") is not None
+    assert uow.repos.get("CRUNCHY-ARMCHAIR") is not None
     assert uow.committed
 
 

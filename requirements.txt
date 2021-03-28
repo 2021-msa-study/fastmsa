@@ -2,8 +2,10 @@ fastapi
 flask
 sqlalchemy
 requests
-# psycopg2-binary
+psycopg2-binary
 
 pytest
 pylint
 mypy
+pydocstyle
+yapf
