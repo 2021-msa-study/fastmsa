@@ -1,0 +1,21 @@
+# production
+requests
+sqlalchemy
+flask
+fastapi
+fastalchemy
+
+# development
+pytest
+pytest-flask
+pytest-watch
+pydocstyle
+git+https://github.com/AllanDaemon/mypy.git@0edf1233672117c4555759c5a91461a502ddce5d
+git+https://github.com/PyCQA/pylint.git
+
+# documentation
+sphinx
+sphinx_rtd_theme
+sphinx-autodoc-typehints
+sphinxcontrib-plantuml
+livereload
