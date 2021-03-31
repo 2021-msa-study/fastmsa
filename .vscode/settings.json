@@ -5,7 +5,7 @@
         "**/.mypy_cache": true,
         "**/.pytest_cache": true
     },
-    "python.formatting.provider": "yapf",
+    "python.formatting.provider": "black",
     "restructuredtext.languageServer.disabled": true,
     "python.testing.pytestArgs": [
         "tests"
