@@ -21,9 +21,9 @@ app = Flask(__name__)  # pylint: disable=invalid-name
 get_session: SessionMaker = cast(SessionMaker, None)  # pylint: disable=invalid-name
 
 
-def init_db(db_url: Optional[str] = None,
-            drop_all: bool = False,
-            show_log: bool = False) -> SessionMaker:
+def init_db(
+    db_url: Optional[str] = None, drop_all: bool = False, show_log: bool = False
+) -> SessionMaker:
     """DB 엔진을 초기화 합니다."""
     global get_session  # pylint: disable=global-statement, invalid-name
 
@@ -31,12 +31,14 @@ def init_db(db_url: Optional[str] = None,
         return get_session
 
     metadata = orm.start_mappers()
-    engine = orm.init_engine(metadata,
-                             db_url or config.get_db_url(),
-                             connect_args=config.get_db_connect_args(),
-                             poolclass=config.get_db_poolclass(),
-                             drop_all=drop_all,
-                             show_log=show_log)
+    engine = orm.init_engine(
+        metadata,
+        db_url or config.get_db_url(),
+        connect_args=config.get_db_connect_args(),
+        poolclass=config.get_db_poolclass(),
+        drop_all=drop_all,
+        show_log=show_log,
+    )
     get_session = cast(SessionMaker, sessionmaker(engine))
     return get_session
 
@@ -54,6 +56,7 @@ def init_app() -> Flask:
     """
     # pylint: disable=import-outside-toplevel,cyclic-import, unused-import
     from ..routes import flask
+
     global get_session  # pylint: disable=global-statement, invalid-name
     get_session = init_db()
     return app

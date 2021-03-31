@@ -9,10 +9,10 @@ import types
 import inspect
 import traceback
 
-FAIL = '\033[91m'
-VIOLET = '\033[95m'
-ENDC = '\033[0m'
-BOLD = '\033[1m'
+FAIL = "\033[91m"
+VIOLET = "\033[95m"
+ENDC = "\033[0m"
+BOLD = "\033[1m"
 
 _AnyFunc = Callable[..., Any]
 
@@ -22,23 +22,24 @@ def random_suffix() -> str:
     return uuid.uuid4().hex[:6]
 
 
-def random_sku(name: str = '') -> str:
+def random_sku(name: str = "") -> str:
     """임의의 SKU를 생성합니다."""
-    return f'sku-{name}-{random_suffix()}'
+    return f"sku-{name}-{random_suffix()}"
 
 
 def random_batchref(num: int = 1) -> str:
     """임의의 Batch reference를 생성합니다."""
-    return f'batch-{num}-{random_suffix()}'
+    return f"batch-{num}-{random_suffix()}"
 
 
-def random_orderid(name: str = '') -> str:
+def random_orderid(name: str = "") -> str:
     """임의의 order_id 를 생성합니다."""
-    return f'order-{name}-{random_suffix()}'
+    return f"order-{name}-{random_suffix()}"
 
 
-class mytest:  #pylint: disable=invalid-name
+class mytest:  # pylint: disable=invalid-name
     """pytest 를 흉내내는 간단한 Jupyter Notebook용 테스트 러너 입니다."""
+
     fixtures: dict[str, _AnyFunc] = {}
     tests: dict[_AnyFunc, _AnyFunc] = {}
 
@@ -61,8 +62,9 @@ class mytest:  #pylint: disable=invalid-name
 
                 mytest.run(test_example)
         """
-        assert func in cls.tests, \
-               f'{func} should be registered with `@unit` decorator first'
+        assert (
+            func in cls.tests
+        ), f"{func} should be registered with `@unit` decorator first"
         cls.tests[func]()
 
     @classmethod
@@ -81,6 +83,7 @@ class mytest:  #pylint: disable=invalid-name
         함수 객체는 내부 테스트 레지스트리에 보관되며 :meth:`mytest.run` 으로 다시
         실행할 수 있습니다.
         """
+
         def unit() -> _AnyFunc:
             cleanups = []
 
@@ -89,8 +92,9 @@ class mytest:  #pylint: disable=invalid-name
                 fixnames: list[str] = inspect.getfullargspec(func).args
 
                 for fixname in fixnames:
-                    assert fixname in cls.fixtures, \
-                           f'name "{fixname}" should be registered first with @mytest.fixture'
+                    assert (
+                        fixname in cls.fixtures
+                    ), f'name "{fixname}" should be registered first with @mytest.fixture'
 
                     fixfunc = cls.fixtures[fixname]
                     fixargs = inspect.getfullargspec(fixfunc).args
@@ -113,9 +117,9 @@ class mytest:  #pylint: disable=invalid-name
 
             try:
                 unwrap(func)
-                print(f'✅ {VIOLET}{func.__name__}{ENDC}', flush=True)
-            except:  #pylint: disable=bare-except
-                print(f'❌ {FAIL}{func.__name__}{ENDC}', flush=True)
+                print(f"✅ {VIOLET}{func.__name__}{ENDC}", flush=True)
+            except:  # pylint: disable=bare-except
+                print(f"❌ {FAIL}{func.__name__}{ENDC}", flush=True)
                 traceback.print_exc(limit=-1)
                 sys.stderr.flush()
             finally:  # 함수 실행이 실패해도 함수 정의는 그대로 리턴하도록

@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session
 from tests.app.adapters.repository import AbstractRepository, SqlAlchemyRepository
 from tests.app.adapters.orm import SessionMaker, get_session as default_session_factory
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class AbstractUnitOfWork(Generic[T], AbstractContextManager[Session]):
@@ -28,6 +28,7 @@ class AbstractUnitOfWork(Generic[T], AbstractContextManager[Session]):
     UnitOfWork(UoW)는 영구 저장소의 유일한 진입점이며, 로드된 객체의
     최신 상태를 계속 트래킹 합니다.
     """
+
     repos: AbstractRepository[T]
 
     def __enter__(self) -> AbstractUnitOfWork[T]:
@@ -53,7 +54,7 @@ class AbstractUnitOfWork(Generic[T], AbstractContextManager[Session]):
 class SqlAlchemyUnitOfWork(AbstractUnitOfWork[T]):
     """``SqlAlchemy`` ORM을 이용한 UnitOfWork 패턴 구현입니다."""
 
-    #pylint: disable=super-init-not-called
+    # pylint: disable=super-init-not-called
     def __init__(self, get_session: Optional[SessionMaker] = None) -> None:
         """``SqlAlchemy`` 기반의 UoW를 초기화합니다."""
         if not get_session:

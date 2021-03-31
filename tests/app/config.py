@@ -18,7 +18,7 @@ def get_api_port() -> int:
 
 def get_api_url() -> str:
     """Get API server's full url."""
-    return f'http://{get_api_host()}:{get_api_port()}'
+    return f"http://{get_api_host()}:{get_api_port()}"
 
 
 def get_db_url() -> str:
@@ -26,10 +26,10 @@ def get_db_url() -> str:
 
     The url format should conform the SQLAlchemy's url scheme.
     """
-    db_host = os.environ.get('DB_HOST', 'localhost')
-    db_user = os.environ.get('DB_USER', 'postgres')
-    db_pass = os.environ.get('DB_PASS', 'test')
-    db_name = os.environ.get('DB_NAME', db_user)
+    db_host = os.environ.get("DB_HOST", "localhost")
+    db_user = os.environ.get("DB_USER", "postgres")
+    db_pass = os.environ.get("DB_PASS", "test")
+    db_name = os.environ.get("DB_NAME", db_user)
     return f"postgresql://{db_user}:{db_pass}@{db_host}/{db_name}"
 
 

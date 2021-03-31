@@ -8,8 +8,16 @@ import io
 import re
 import logging
 
-from sqlalchemy import (MetaData, Table, Column, ForeignKey, Integer, String,
-                        Date, create_engine)
+from sqlalchemy import (
+    MetaData,
+    Table,
+    Column,
+    ForeignKey,
+    Integer,
+    String,
+    Date,
+    create_engine,
+)
 from sqlalchemy.pool.base import Pool
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import (
@@ -32,6 +40,7 @@ metadata: MetaData = None
 
 class AbstractSession(abc.ABC):
     """세션의 일반적인 작업(`commit`, `rollback`) 을 추상화한 클래스."""
+
     @abc.abstractmethod
     def commit(self) -> None:
         """트랜잭션을 커밋합니다."""
@@ -46,47 +55,42 @@ def start_mappers(use_exist: bool = True) -> MetaData:
 
     metadata = MetaData()
 
-    order_line = Table('order_line',
-                       metadata,
-                       Column('id',
-                              Integer,
-                              primary_key=True,
-                              autoincrement=True),
-                       Column('sku', String(255)),
-                       Column('qty', Integer, nullable=False),
-                       Column('orderid', String(255)),
-                       extend_existing=True)
+    order_line = Table(
+        "order_line",
+        metadata,
+        Column("id", Integer, primary_key=True, autoincrement=True),
+        Column("sku", String(255)),
+        Column("qty", Integer, nullable=False),
+        Column("orderid", String(255)),
+        extend_existing=True,
+    )
 
-    allocation = Table('allocation',
-                       metadata,
-                       Column('orderline_id',
-                              Integer,
-                              ForeignKey('order_line.id'),
-                              primary_key=True),
-                       Column('batch_id',
-                              Integer,
-                              ForeignKey('batch.id'),
-                              primary_key=True),
-                       extend_existing=True)
+    allocation = Table(
+        "allocation",
+        metadata,
+        Column("orderline_id", Integer, ForeignKey("order_line.id"), primary_key=True),
+        Column("batch_id", Integer, ForeignKey("batch.id"), primary_key=True),
+        extend_existing=True,
+    )
 
-    batch = Table('batch',
-                  metadata,
-                  Column('id', Integer, primary_key=True, autoincrement=True),
-                  Column('reference', String(255), unique=True),
-                  Column('_purchased_quantity', Integer),
-                  Column('sku', String(255)),
-                  Column('eta', Date, nullable=True),
-                  extend_existing=True)
+    batch = Table(
+        "batch",
+        metadata,
+        Column("id", Integer, primary_key=True, autoincrement=True),
+        Column("reference", String(255), unique=True),
+        Column("_purchased_quantity", Integer),
+        Column("sku", String(255)),
+        Column("eta", Date, nullable=True),
+        extend_existing=True,
+    )
 
     _batch_mapper = mapper(
         Batch,
         batch,
         properties={
-            '_allocations':
-            relationship(OrderLine,
-                         secondary=allocation,
-                         collection_class=set,
-                         lazy='joined'),
+            "_allocations": relationship(
+                OrderLine, secondary=allocation, collection_class=set, lazy="joined"
+            ),
         },
     )
 
@@ -100,13 +104,15 @@ def clear_mappers() -> None:
     _clear_mappers()
 
 
-def init_engine(meta: MetaData,
-                url: str,
-                connect_args: Optional[dict[str, Any]] = None,
-                poolclass: Optional[Pool] = None,
-                show_log: Union[bool, dict[str, Any]] = False,
-                isolation_level: Optional[str] = None,
-                drop_all: bool = False) -> Engine:
+def init_engine(
+    meta: MetaData,
+    url: str,
+    connect_args: Optional[dict[str, Any]] = None,
+    poolclass: Optional[Pool] = None,
+    show_log: Union[bool, dict[str, Any]] = False,
+    isolation_level: Optional[str] = None,
+    drop_all: bool = False,
+) -> Engine:
     """ORM Engine을 초기화 합니다.
 
     TODO: 상세 설명 추가.
@@ -114,11 +120,13 @@ def init_engine(meta: MetaData,
     logger = logging.getLogger("sqlalchemy.engine.base.Engine")
     out = io.StringIO()
     logger.addHandler(logging.StreamHandler(out))
-    engine = create_engine(url,
-                           connect_args=connect_args or {},
-                           poolclass=poolclass,
-                           echo=show_log,
-                           isolation_level=isolation_level)
+    engine = create_engine(
+        url,
+        connect_args=connect_args or {},
+        poolclass=poolclass,
+        echo=show_log,
+        isolation_level=isolation_level,
+    )
 
     if drop_all:
         meta.drop_all(engine)
@@ -128,17 +136,16 @@ def init_engine(meta: MetaData,
     if show_log:
         log_txt = out.getvalue()
         if show_log is True:
-            print(''.join(
-                re.findall('CREATE.*?\n\n', log_txt, re.DOTALL | re.I)))
+            print("".join(re.findall("CREATE.*?\n\n", log_txt, re.DOTALL | re.I)))
         elif isinstance(show_log, dict):
-            if show_log.get('all'):
+            if show_log.get("all"):
                 print(log_txt)
 
     return engine
 
 
 def get_session() -> SessionMaker:
-    '''기본설정으로 SqlAlchemy Session 팩토리를 만듭니다.'''
+    """기본설정으로 SqlAlchemy Session 팩토리를 만듭니다."""
     engine = init_engine(start_mappers(), config.get_db_url())
     return cast(SessionMaker, sessionmaker(engine))
 
