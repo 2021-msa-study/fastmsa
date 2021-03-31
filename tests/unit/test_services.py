@@ -56,7 +56,8 @@ class FakeProductRepository(FakeRepository[Product]):
 
 
 class FakeUnitOfWork(AbstractUnitOfWork[Product]):
-    def __init__(self) -> None:
+    # 생성자 오버로딩이 필요해서 인자값 저장하는 파라미터 추가
+    def __init__(self, *args, **kwargs) -> None:
         self.repos = FakeProductRepository([])
         self.committed = False
 

@@ -28,7 +28,12 @@ def add(ref: str, sku: str, qty: int, eta: Optional[date],
         uow: AbstractUnitOfWork[Product]) -> None:
     """UOW를 이용해 배치를 추가합니다."""
     with uow:
-        product = uow.repos.get(sku)
+        try:
+            product = uow.repos.get(sku)
+        except:
+            print("exception")
+            product = None
+
         if not product:
             product = Product(sku, batches=[])
             uow.repos.add(product)
