@@ -8,4 +8,4 @@ pytest
 pylint
 mypy
 pydocstyle
-yapf
+black

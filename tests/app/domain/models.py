@@ -8,12 +8,14 @@ from datetime import date
 
 class OutOfStock(Exception):
     """:class:`Batch` 에 할당할 재고(Stock)가 없을 때 발생하는 예외입니다."""
+
     ...
 
 
 @dataclass
 class Order:
     """고객이 발주하는 주문(Order) 모델입니다.."""
+
     id: str  # pylint: disable=invalid-name
 
 
@@ -35,12 +37,15 @@ class OrderLine:
 
 class Batch:
     """재고 단위(SKU)별로 예정 시간(`eta`)까지 지정 수량(`qta`)으로 한번에 구매될 상품입니다."""
-    def __init__(self,
-                 ref: str,
-                 sku: str,
-                 qty: int,
-                 eta: Optional[date] = None,
-                 id: Optional[int] = None):  # pylint: disable=redefined-builtin
+
+    def __init__(
+        self,
+        ref: str,
+        sku: str,
+        qty: int,
+        eta: Optional[date] = None,
+        id: Optional[int] = None,
+    ):  # pylint: disable=redefined-builtin
         """기본 생성자.
 
         Args:
@@ -132,4 +137,4 @@ def allocate(line: OrderLine, batches: list[Batch]) -> str:
         batch.allocate(line)
         return batch.reference
     except StopIteration as ex:
-        raise OutOfStock(f'Out of stock for sku {line.sku}') from ex
+        raise OutOfStock(f"Out of stock for sku {line.sku}") from ex

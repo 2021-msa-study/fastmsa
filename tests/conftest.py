@@ -33,9 +33,9 @@ def session() -> Session:
 
     :rtype: :class:`~sqlalchemy.orm.Session`
     """
-    engine = create_engine('sqlite://',
-                           connect_args={'check_same_thread': False},
-                           poolclass=StaticPool)
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
     metadata = start_mappers(use_exist=True)
     metadata.create_all(engine)
     return sessionmaker(engine)()
@@ -67,8 +67,7 @@ def get_uow(get_session: SessionMaker) -> AbstractUnitOfWork:
 
 @pytest.fixture
 # pylint: disable=unused-argument
-def server(
-        get_session: SessionMaker) -> Generator[FlaskServerThread, None, None]:
+def server(get_session: SessionMaker) -> Generator[FlaskServerThread, None, None]:
     # noqa
     """:class:`ServerThread` 로 구현된 재시작 가능한 멀티스레드 Flask 서버를
     리턴하는 픽스쳐입니다.

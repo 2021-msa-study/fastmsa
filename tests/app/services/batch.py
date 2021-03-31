@@ -11,11 +11,13 @@ from tests.app.services.uow import AbstractUnitOfWork
 
 class InvalidSku(Exception):
     """배치의 SKU와 다른 SKU를 할당하려 할 때 발생하는 예외입니다."""
+
     ...
 
 
 class ReferenceNotFound(Exception):
     """배치 레퍼런스가 존재하지 않을 때 발생하는 예외입니ㅏ.."""
+
     ...
 
 
@@ -24,8 +26,9 @@ def is_valid_sku(sku: str, batches: Sequence[Batch]) -> bool:
     return sku in {it.sku for it in batches}
 
 
-def add(ref: str, sku: str, qty: int, eta: Optional[date],
-        uow: AbstractUnitOfWork[Product]) -> None:
+def add(
+    ref: str, sku: str, qty: int, eta: Optional[date], uow: AbstractUnitOfWork[Product]
+) -> None:
     """UOW를 이용해 배치를 추가합니다."""
     with uow:
         try:
@@ -41,8 +44,7 @@ def add(ref: str, sku: str, qty: int, eta: Optional[date],
         uow.commit()
 
 
-def allocate(orderid: str, sku: str, qty: int,
-             uow: AbstractUnitOfWork[Product]) -> str:
+def allocate(orderid: str, sku: str, qty: int, uow: AbstractUnitOfWork[Product]) -> str:
     """ETA가 가장 빠른 배치를 찾아 :class:`.OrderLine` 을 할당합니다.
 
     Raises:
@@ -52,7 +54,7 @@ def allocate(orderid: str, sku: str, qty: int,
     with uow:
         product = uow.repos.get(sku=line.sku)
         if product is None:
-            raise InvalidSku(f'Invalid sku {line.sku}')
+            raise InvalidSku(f"Invalid sku {line.sku}")
         batchref = product.allocate(line)
         uow.commit()
     return batchref
