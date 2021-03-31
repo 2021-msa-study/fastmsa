@@ -5,22 +5,17 @@
         "**/.mypy_cache": true,
         "**/.pytest_cache": true
     },
-    "python.formatting.provider": "black",
-    "restructuredtext.languageServer.disabled": true,
     "python.testing.pytestArgs": [
         "tests"
     ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.nosetestsEnabled": false,
     "python.testing.pytestEnabled": true,
-    "python.languageServer": "Pylance",
     "python.linting.pydocstyleEnabled": true,
     "python.linting.pydocstyleArgs": [
         "--convention=google"
     ],
-    "python.linting.mypyEnabled": true,
-    "python.linting.mypyArgs": [
-        "--ignore-missing-imports",
-        "--follow-imports=silent",
-        "--show-column-numbers",
-        "--strict"
-    ]
+    "python.formatting.provider": "black",
+    "python.analysis.typeCheckingMode": "strict",
+    "editor.formatOnSave": true
 }
