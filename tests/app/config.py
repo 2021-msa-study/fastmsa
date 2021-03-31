@@ -29,7 +29,7 @@ def get_db_url() -> str:
     db_host = os.environ.get('DB_HOST', 'localhost')
     db_user = os.environ.get('DB_USER', 'postgres')
     db_pass = os.environ.get('DB_PASS', 'test')
-    db_name = os.environ.get('DB_NAME', db_user)
+    db_name = os.environ.get('DB_NAME', 'postgres')
     return f"postgresql://{db_user}:{db_pass}@{db_host}/{db_name}"
 
 
