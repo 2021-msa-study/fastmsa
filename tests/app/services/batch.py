@@ -52,7 +52,7 @@ def allocate(orderid: str, sku: str, qty: int, uow: AbstractUnitOfWork[Product])
     """
     line = OrderLine(orderid, sku, qty)
     with uow:
-        product = uow.repos.get(sku=line.sku)
+        product = uow.repos.get(line.sku)
         if product is None:
             raise InvalidSku(f"Invalid sku {line.sku}")
         batchref = product.allocate(line)

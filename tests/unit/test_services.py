@@ -57,8 +57,10 @@ class FakeProductRepository(FakeRepository[Product]):
 
 class FakeUnitOfWork(AbstractUnitOfWork[Product]):
     # 생성자 오버로딩이 필요해서 인자값 저장하는 파라미터 추가
-    def __init__(self, *args, **kwargs) -> None:
-        self.repos = FakeProductRepository([])
+    def __init__(self, items: Optional[list[Product]] = None) -> None:
+        if not items:
+            items = []
+        self.repos = FakeProductRepository(items)
         self.committed = False
 
     def commit(self) -> None:
@@ -75,16 +77,10 @@ def test_add_batch() -> None:
     assert uow.committed
 
 
-def test_allocate_returns_allocation() -> None:
-    uow = FakeUnitOfWork()
-    services.batch.add("batch1", "COMPLICATED-LAMP", 100, None, uow)
-    result = services.batch.allocate("o1", "COMPLICATED-LAMP", 10, uow)
-    assert "batch1", result
-
-
 def test_returns_allocation() -> None:
     batch = Batch("b1", "COMPLICATED-LAMP", 100, eta=None)
-    uow = FakeUnitOfWork([batch])
+    product = Product(batch.sku, [batch])
+    uow = FakeUnitOfWork([product])
     result = services.batch.allocate("o1", "COMPLICATED-LAMP", 10, uow)
     assert result == "b1"
 
