@@ -29,7 +29,7 @@ class AbstractUnitOfWork(Generic[T], AbstractContextManager[Session]):
     최신 상태를 계속 트래킹 합니다.
     """
 
-    repos: AbstractRepository[T]
+    repo: AbstractRepository[T]
 
     def __enter__(self) -> AbstractUnitOfWork[T]:
         """``with`` 블록에 진입했을때 실행되는 메소드입니다."""
@@ -55,8 +55,15 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork[T]):
     """``SqlAlchemy`` ORM을 이용한 UnitOfWork 패턴 구현입니다."""
 
     # pylint: disable=super-init-not-called
-    def __init__(self, get_session: Optional[SessionMaker] = None) -> None:
+    def __init__(
+        self,
+        get_session: Optional[SessionMaker] = None,
+        items: Optional[list[T]] = None,
+    ) -> None:
         """``SqlAlchemy`` 기반의 UoW를 초기화합니다."""
+        if items is None:
+            items = []
+
         if not get_session:
             self.get_session = default_session_factory()
         else:
@@ -70,7 +77,7 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork[T]):
         세션을 할당하고, ``batches`` 레포지터리를 초기화합니다.
         """
         self.session = self.get_session()
-        self.batches = SqlAlchemyRepository(self.session)
+        self.repo = SqlAlchemyRepository[T](self.session)
         return super().__enter__()
 
     def __exit__(self, *args: Any) -> None:

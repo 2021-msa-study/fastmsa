@@ -51,14 +51,17 @@ class FakeProductRepository(FakeRepository[Product]):
     def add(self, item: Product) -> None:
         self._items.add(item)
 
-    def get(self, reference: str = "", **_: str) -> Optional[Product]:
+    def get(self, reference: str = "", **kwargs: str) -> Optional[Product]:
+        # TODO reference 대신 PK 필드를 지정하는 방법을 찾아봅시다.
         return next((p for p in self._items if p.sku == reference), None)
 
 
 class FakeUnitOfWork(AbstractUnitOfWork[Product]):
     # 생성자 오버로딩이 필요해서 인자값 저장하는 파라미터 추가
-    def __init__(self, *args, **kwargs) -> None:
-        self.repos = FakeProductRepository([])
+    def __init__(self, items: Optional[list[Product]] = None) -> None:
+        if items is None:
+            items = []
+        self.repo = FakeProductRepository(items)
         self.committed = False
 
     def commit(self) -> None:
@@ -71,7 +74,7 @@ class FakeUnitOfWork(AbstractUnitOfWork[Product]):
 def test_add_batch() -> None:
     uow = FakeUnitOfWork()
     services.batch.add("b1", "CRUNCHY-ARMCHAIR", 100, None, uow)
-    assert uow.repos.get("CRUNCHY-ARMCHAIR") is not None
+    assert uow.repo.get(reference="CRUNCHY-ARMCHAIR") is not None
     assert uow.committed
 
 
@@ -84,21 +87,24 @@ def test_allocate_returns_allocation() -> None:
 
 def test_returns_allocation() -> None:
     batch = Batch("b1", "COMPLICATED-LAMP", 100, eta=None)
-    uow = FakeUnitOfWork([batch])
+    product = Product(batch.sku, [batch])
+    uow = FakeUnitOfWork([product])
     result = services.batch.allocate("o1", "COMPLICATED-LAMP", 10, uow)
     assert result == "b1"
 
 
 def test_error_for_invalid_sku() -> None:
     batch = Batch("b1", "AREALSKU", 100, eta=None)
-    uow = FakeUnitOfWork([batch])
+    product = Product(batch.sku, [batch])
+    uow = FakeUnitOfWork([product])
     with pytest.raises(services.batch.InvalidSku, match="Invalid sku NONEXISTENTSKU"):
         services.batch.allocate("o1", "NONEXISTENTSKU", 10, uow)
 
 
 def test_commits() -> None:
     batch = Batch("b1", "OMINOUS-MIRROR", 100, eta=None)
-    uow = FakeUnitOfWork([batch])
+    product = Product(batch.sku, [batch])
+    uow = FakeUnitOfWork([product])
     services.batch.allocate("o1", "OMINOUS-MIRROR", 10, uow)
     assert uow.committed is True
 

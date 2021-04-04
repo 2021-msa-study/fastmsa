@@ -1,13 +1,21 @@
 from __future__ import annotations
-from typing import Optional, Callable, cast
+from typing import Optional, Any
 from datetime import date
 
 import pytest
 
 from tests.app.services.uow import AbstractUnitOfWork, SqlAlchemyUnitOfWork
 from tests.app.domain.models import Batch, OrderLine
-from tests.app.adapters.orm import start_mappers, init_engine, sessionmaker, Session
+from tests.app.adapters.orm import (
+    SessionMaker,
+    start_mappers,
+    init_engine,
+    sessionmaker,
+    Session,
+)
 from tests.app import config
+
+from tests.app.domain.aggregates import Product
 
 
 def insert_batch(
@@ -80,14 +88,19 @@ def get_allocated_batch_ref(session: Session, orderid: str, sku: str) -> str:
     return batchref
 
 
-def test_uow_can_retrieve_a_batch_and_allocate_to_it(get_session, session_with_batch):
+def test_uow_can_retrieve_a_batch_and_allocate_to_it(
+    get_session: SessionMaker,
+    session_with_batch: Any,
+):
     session = session_with_batch("batch1", "HIPSTER-WORKBENCH", 100, None)
-    uow = SqlAlchemyUnitOfWork(get_session)
+    uow = SqlAlchemyUnitOfWork[Product](get_session)
     with uow:
-        batch = cast(Batch, uow.batches.get(reference="batch1"))
-        line = OrderLine("o1", "HIPSTER-WORKBENCH", 10)
-        batch.allocate(line)
-        uow.commit()
+        product = uow.repo.get(reference="batch1")
+        if product:
+            batch = product
+            line = OrderLine("o1", "HIPSTER-WORKBENCH", 10)
+            batch.allocate(line)
+            uow.commit()
 
     batchref = get_allocated_batch_ref(session, "o1", "HIPSTER-WORKBENCH")
     assert batchref == "batch1"
