@@ -70,7 +70,7 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork[T]):
         세션을 할당하고, ``batches`` 레포지터리를 초기화합니다.
         """
         self.session = self.get_session()
-        self.batches = SqlAlchemyRepository(self.session)
+        self.repos = SqlAlchemyRepository[T](self.session)
         return super().__enter__()
 
     def __exit__(self, *args: Any) -> None:

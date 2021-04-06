@@ -9,6 +9,8 @@ from tests.app.services.uow import SqlAlchemyUnitOfWork
 from tests.app.domain.models import OrderLine, allocate
 from tests.app import services
 
+from tests.app.domain.aggregates import Product
+
 
 @route("/batches", methods=["POST"])
 def add_batch() -> FlaskResponse:
@@ -44,14 +46,12 @@ def delete_batches() -> FlaskResponse:
 @route("/batches/allocate", methods=["POST"])
 def post_allocate_batch() -> FlaskResponse:
     """``POST /allocate`` 엔트포인트 요청을 처리합니다."""
-    with SqlAlchemyUnitOfWork() as uow:
-        batches = uow.batches.list()
-        line = OrderLine(
-            request.json["orderid"],
-            request.json["sku"],
-            request.json["qty"],
-        )
-        batchref = allocate(line, batches)
-        uow.commit()
+    from tests.app.services.batch import allocate
 
-    return jsonify({"batchref": batchref}), 201
+    orderid = request.json["orderid"]
+    sku = request.json["sku"]
+    qty = request.json["qty"]
+
+    with SqlAlchemyUnitOfWork[Product]() as uow:
+        batchref = allocate(orderid, sku, qty, uow)
+        return jsonify({"batchref": batchref}), 201

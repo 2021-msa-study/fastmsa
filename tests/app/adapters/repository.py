@@ -57,7 +57,7 @@ class AbstractRepository(Generic[T], abc.ABC, ContextDecorator):
         raise NotImplementedError
 
 
-class SqlAlchemyRepository(AbstractRepository[Batch]):
+class SqlAlchemyRepository(AbstractRepository[T]):
     """SqlAlchemy ORM을 저장소로 하는 :class:`AbstractRepository` 구현입니다."""
 
     def __enter__(self) -> SqlAlchemyRepository:
@@ -70,24 +70,22 @@ class SqlAlchemyRepository(AbstractRepository[Batch]):
     def close(self) -> None:
         self.session.close()
 
-    def add(self, item: Batch) -> None:
+    def add(self, item: T) -> None:
         self.session.add(item)
 
-    def get(self, reference: str = "", **kwargs: str) -> Optional[Batch]:
+    def get(self, reference: str = "", **kwargs: str) -> Optional[T]:
         filter_by = {
             k: v
             for k, v in dict(reference=reference, **kwargs).items()
             if v is not None
         }
-        return cast(
-            Optional[Batch], self.session.query(Batch).filter_by(**filter_by).first()
-        )
+        return cast(Optional[T], self.session.query(T).filter_by(**filter_by).first())
 
-    def delete(self, item: Batch) -> None:
+    def delete(self, item: T) -> None:
         self.session.delete(item)
 
-    def list(self) -> list[Batch]:
-        return cast(list[Batch], self.session.query(Batch).all())
+    def list(self) -> list[T]:
+        return cast(list[T], self.session.query(T).all())
 
     def clear(self) -> None:
         self.session.execute("DELETE FROM allocation")
