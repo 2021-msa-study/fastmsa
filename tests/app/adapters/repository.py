@@ -1,8 +1,9 @@
 """레포지터리 패턴 구현."""
 from __future__ import annotations
-from typing import Optional, Union, Literal, Generic, TypeVar, Any, cast
+from typing import List, Optional, Type, Union, Literal, Generic, TypeVar, Any, cast
 from contextlib import ContextDecorator
 import abc
+import typing
 
 from sqlalchemy.orm import Session
 
@@ -42,7 +43,7 @@ class AbstractRepository(Generic[T], abc.ABC, ContextDecorator):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def list(self) -> list[T]:
+    def list(self) -> List[T]:
         """모든 배치 객체 리스트를 조회합니다."""
         raise NotImplementedError
 
@@ -60,12 +61,17 @@ class AbstractRepository(Generic[T], abc.ABC, ContextDecorator):
 class SqlAlchemyRepository(AbstractRepository[T]):
     """SqlAlchemy ORM을 저장소로 하는 :class:`AbstractRepository` 구현입니다."""
 
+    def __init__(self, entity_class: Type[T], session: Session):
+        """임의의 Aggregate T 를 받아 T에대한 Repostiory를 초기화합니다."""
+        self.entity_class = entity_class
+        self.session = session  # pylint: disable=invalid-name
+
+    def __repr__(self):
+        return f"SqlAlchemyRepository[{self.entity_class}]"
+
     def __enter__(self) -> SqlAlchemyRepository[T]:
         """`module`:contextmanager`의 필수 인터페이스 구현."""
         return self
-
-    def __init__(self, session: Session):
-        self.session = session  # pylint: disable=invalid-name
 
     def close(self) -> None:
         self.session.close()
@@ -74,18 +80,17 @@ class SqlAlchemyRepository(AbstractRepository[T]):
         self.session.add(item)
 
     def get(self, reference: str = "", **kwargs: str) -> Optional[T]:
-        filter_by = {
-            k: v
-            for k, v in dict(reference=reference, **kwargs).items()
-            if v is not None
-        }
-        return cast(Optional[T], self.session.query(T).filter_by(**filter_by).first())
+        if reference:
+            return self.session.query(self.entity_class).filter_by(reference=reference).first()  # type: ignore
+
+        filter_by = {k: v for k, v in kwargs.items() if v is not None}
+        return self.session.query(self.entity_class).filter_by(**filter_by).first()  # type: ignore
 
     def delete(self, item: T) -> None:
         self.session.delete(item)
 
-    def list(self) -> list[T]:
-        return cast(list[T], self.session.query(T).all())
+    def list(self):
+        return cast(list[T], self.session.query(self.entity_class).all())
 
     def clear(self) -> None:
         self.session.execute("DELETE FROM allocation")

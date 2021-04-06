@@ -1,10 +1,13 @@
 from __future__ import annotations
-from typing import Optional, Any
+from typing import Optional, Any, cast
 from datetime import date
 
 import pytest
 
-from tests.app.services.uow import AbstractUnitOfWork, SqlAlchemyUnitOfWork
+from tests.app.services.uow import (
+    AbstractUnitOfWork,
+    SqlAlchemyUnitOfWork,
+)
 from tests.app.domain.models import Batch, OrderLine
 from tests.app.adapters.orm import (
     SessionMaker,
@@ -15,7 +18,10 @@ from tests.app.adapters.orm import (
 )
 from tests.app import config
 
-from tests.app.domain.aggregates import Product
+from tests.app.domain import aggregates
+
+# XXX: pyright 에서 제대로 typing 을 찾지 못해 Casting 필요
+Product = cast(aggregates.Aggregate[Batch], aggregates.Product)
 
 
 def insert_batch(
@@ -68,7 +74,7 @@ def cleanup_uow(get_session):
         nonlocal batch_ref
         batch_ref = ref
         delete_batch_and_allocation(session, batch_ref)
-        return SqlAlchemyUnitOfWork(lambda: session)
+        return SqlAlchemyUnitOfWork(Product, lambda: session)
 
     yield wrapper
 
@@ -93,7 +99,8 @@ def test_uow_can_retrieve_a_batch_and_allocate_to_it(
     session_with_batch: Any,
 ):
     session = session_with_batch("batch1", "HIPSTER-WORKBENCH", 100, None)
-    uow = SqlAlchemyUnitOfWork[Product](get_session)
+    uow = SqlAlchemyUnitOfWork(Product, get_session)
+
     with uow:
         product = uow.repo.get(reference="batch1")
         if product:

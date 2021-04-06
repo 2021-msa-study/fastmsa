@@ -10,9 +10,11 @@ UoW 는 영구 저장소의 유일한 진입점이며, 로드된 객체의 최�
 - A *simple API* to our persistence concerns and a handy place to get a repository
 """
 from __future__ import annotations
-from typing import Optional, Generic, TypeVar, Any
+from tests.app.domain.aggregates import Aggregate
+from typing import Callable, Optional, Generic, Type, TypeVar, Any, cast
 from contextlib import AbstractContextManager
 import abc
+import typing
 
 from sqlalchemy.orm import Session
 
@@ -51,12 +53,13 @@ class AbstractUnitOfWork(Generic[T], AbstractContextManager[Session]):
         raise NotImplementedError
 
 
-class SqlAlchemyUnitOfWork(AbstractUnitOfWork[T]):
+class SqlAlchemyUnitOfWork(AbstractUnitOfWork[T]):  # type: ignore
     """``SqlAlchemy`` ORM을 이용한 UnitOfWork 패턴 구현입니다."""
 
     # pylint: disable=super-init-not-called
     def __init__(
         self,
+        agg_class: Aggregate[T],
         get_session: Optional[SessionMaker] = None,
         items: Optional[list[T]] = None,
     ) -> None:
@@ -68,8 +71,13 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork[T]):
             self.get_session = default_session_factory()
         else:
             self.get_session = get_session
+
         self.committed = False
         self.session: Optional[Session] = None
+        self.agg_class = agg_class
+
+    def __repr__(self):
+        return f"SqlAlchemyUnitOfWork[{self.agg_class.Meta.entity_class}]"
 
     def __enter__(self) -> AbstractUnitOfWork[T]:
         """``with`` 블록에 진입했을 때 필요한 작업을 수행합니다.
@@ -77,7 +85,10 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork[T]):
         세션을 할당하고, ``batches`` 레포지터리를 초기화합니다.
         """
         self.session = self.get_session()
-        self.repo = SqlAlchemyRepository[T](self.session)
+        self.repo = SqlAlchemyRepository[T](
+            cast(Any, self.agg_class.Meta.entity_class),
+            self.session,
+        )
         return super().__enter__()
 
     def __exit__(self, *args: Any) -> None:

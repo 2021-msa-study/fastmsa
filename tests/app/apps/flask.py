@@ -1,5 +1,6 @@
 """Flask 로 구현한 RESTful 서비스 앱."""
 from __future__ import annotations
+from tests.app.domain.models import Batch
 from typing import Callable, Optional, Any, cast
 
 from flask import Flask
@@ -45,7 +46,7 @@ def init_db(
 
 def get_repo() -> SqlAlchemyRepository:
     """앱 DB와 연결된 레포지터리 객체를 리턴합니다."""
-    return SqlAlchemyRepository(get_session())
+    return SqlAlchemyRepository(Batch, get_session())
 
 
 def init_app() -> Flask:

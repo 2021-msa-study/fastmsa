@@ -10,7 +10,7 @@ from tests.integration import insert_allocation, insert_batch, insert_order_line
 def test_repository_can_save_a_batch(session: Session) -> None:
     batch = Batch("batch1", "RUSTY-SOAPDISH", 100, eta=None)
 
-    repo = SqlAlchemyRepository(session)
+    repo = SqlAlchemyRepository(Batch, session)
     repo.add(batch)
     session.commit()
 
@@ -26,7 +26,7 @@ def test_repository_can_retrieve_a_batch_with_allocations(session: Session) -> N
     insert_batch(session, "batch2")
     insert_allocation(session, orderline_id, batch1_id)
 
-    repo = SqlAlchemyRepository(session)
+    repo = SqlAlchemyRepository(Batch, session)
     retrieved = repo.get("batch1")
 
     expected = Batch("batch1", "GENERIC-SOFA", 100, eta=None)

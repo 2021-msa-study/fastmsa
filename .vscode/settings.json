@@ -16,6 +16,6 @@
         "--convention=google"
     ],
     "python.formatting.provider": "black",
-    "python.analysis.typeCheckingMode": "strict",
+    "python.analysis.typeCheckingMode": "basic",
     "editor.formatOnSave": true
 }

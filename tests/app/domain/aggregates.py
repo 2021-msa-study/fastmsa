@@ -1,15 +1,28 @@
+from typing import Generic, Type, TypeVar
 from tests.app.domain.models import Batch, OrderLine, OutOfStock
 
 
-class Product:
-    def __init__(self, sku: str, batches: list[Batch], version_number: int = 0):
+T = TypeVar("T")
+
+
+class Aggregate(Generic[T]):
+    class Meta:
+        entity_class: Type
+
+
+class Product(Aggregate[Batch]):
+    class Meta:
+        entity_class: Type[Batch] = Batch
+
+    def __init__(self, sku: str, items: list[Batch], version_number: int = 0):
         self.sku = sku
-        self.batches = batches
+        self.items = items
         self.version_number = version_number
+        self.entity_class = Batch
 
     def allocate(self, line: OrderLine) -> str:
         try:
-            batch = next(b for b in sorted(self.batches) if b.can_allocate(line))
+            batch = next(b for b in sorted(self.items) if b.can_allocate(line))
             batch.allocate(line)
             self.version_number += 1
             return batch.reference
@@ -23,7 +36,7 @@ class Product:
         모든 유효성 검사와 세부 작업이 다 성공할 경우에만 명시적으로 호출된 commit 함수에 의해 저장소 내용이 변경됩니다.
         """
         try:
-            batch = next(b for b in sorted(self.batches) if b.can_allocate(line))
+            batch = next(b for b in sorted(self.items) if b.can_allocate(line))
             batch.deallocate(line)
             batch.allocate(line)
             return batch.reference

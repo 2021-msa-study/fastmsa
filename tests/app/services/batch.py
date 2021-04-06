@@ -34,9 +34,9 @@ def add(
         product = uow.repo.get(sku)
 
         if not product:
-            product = Product(sku, batches=[])
+            product = Product(sku, items=[])
             uow.repo.add(product)
-        product.batches.append(Batch(ref, sku, qty, eta))
+        product.items.append(Batch(ref, sku, qty, eta))
         uow.commit()
 
 
