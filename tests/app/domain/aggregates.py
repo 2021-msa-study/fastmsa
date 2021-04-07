@@ -18,7 +18,6 @@ class Product(Aggregate[Batch]):
         self.sku = sku
         self.items = items
         self.version_number = version_number
-        self.entity_class = Batch
 
     def allocate(self, line: OrderLine) -> str:
         try:
