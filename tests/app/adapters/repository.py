@@ -81,7 +81,7 @@ class SqlAlchemyRepository(AbstractRepository[T]):
 
     def get(self, reference: str = "", **kwargs: str) -> Optional[T]:
         if reference:
-            return self.session.query(self.entity_class).filter_by(reference=reference).first()  # type: ignore
+            return self.session.query(self.entity_class).get(reference)  # type: ignore
 
         filter_by = {k: v for k, v in kwargs.items() if v is not None}
         return self.session.query(self.entity_class).filter_by(**filter_by).first()  # type: ignore

@@ -1,5 +1,6 @@
 """ORM 어댑터 모듈"""
 from __future__ import annotations
+from tests.app.domain.aggregates import Product
 
 from typing import Callable, Generator, Optional, Union, Any, cast
 from contextlib import contextmanager, AbstractContextManager
@@ -79,10 +80,21 @@ def start_mappers(use_exist: bool = True) -> MetaData:
         Column("id", Integer, primary_key=True, autoincrement=True),
         Column("reference", String(255), unique=True),
         Column("_purchased_quantity", Integer),
-        Column("sku", String(255)),
+        Column("sku", ForeignKey("product.sku")),  # 외래키 관계 추가),
         Column("eta", Date, nullable=True),
         extend_existing=True,
     )
+
+    # Aggregate 매핑 추가
+    product = Table(
+        "product",
+        metadata,
+        Column("sku", String(255), primary_key=True),
+        Column("version_number", Integer, nullable=False, server_default="0"),
+        extend_existing=True,
+    )
+
+    prouct_mapper = mapper(Product, product, properties={"items": relationship(Batch)})
 
     _batch_mapper = mapper(
         Batch,
@@ -146,7 +158,9 @@ def init_engine(
 
 def get_session() -> SessionMaker:
     """기본설정으로 SqlAlchemy Session 팩토리를 만듭니다."""
-    engine = init_engine(start_mappers(), config.get_db_url())
+    engine = init_engine(
+        start_mappers(), config.get_db_url(), isolation_level="REPEATABLE READ"
+    )
     return cast(SessionMaker, sessionmaker(engine))
 
 

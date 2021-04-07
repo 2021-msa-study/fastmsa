@@ -1,17 +1,24 @@
 # pylint: disable=protected-access
+from tests.app.domain.aggregates import Product
 from sqlalchemy.orm import Session
 
 from tests.app.domain.models import Batch, OrderLine
 from tests.app.adapters.repository import SqlAlchemyRepository
 
-from tests.integration import insert_allocation, insert_batch, insert_order_line
+from tests.integration import (
+    insert_allocation,
+    insert_batch,
+    insert_order_line,
+    insert_product,
+)
 
 
 def test_repository_can_save_a_batch(session: Session) -> None:
     batch = Batch("batch1", "RUSTY-SOAPDISH", 100, eta=None)
+    product = Product(batch.sku, [batch])
 
-    repo = SqlAlchemyRepository(Batch, session)
-    repo.add(batch)
+    repo = SqlAlchemyRepository(Product, session)
+    repo.add(product)
     session.commit()
 
     rows = list(
@@ -23,11 +30,14 @@ def test_repository_can_save_a_batch(session: Session) -> None:
 def test_repository_can_retrieve_a_batch_with_allocations(session: Session) -> None:
     orderline_id = insert_order_line(session)
     batch1_id = insert_batch(session, "batch1", "GENERIC-SOFA")
-    insert_batch(session, "batch2")
+    insert_product(session, "GENERIC-SOFA")
+    insert_batch(session, "batch2", "GENERIC-TABLE")
+    insert_product(session, "GENERIC-TABLE")
     insert_allocation(session, orderline_id, batch1_id)
 
-    repo = SqlAlchemyRepository(Batch, session)
-    retrieved = repo.get("batch1")
+    repo = SqlAlchemyRepository(Product, session)
+    product = repo.get("GENERIC-SOFA")
+    retrieved = product.items[0]
 
     expected = Batch("batch1", "GENERIC-SOFA", 100, eta=None)
     assert retrieved == expected  # Batch.__eq__ only compares reference

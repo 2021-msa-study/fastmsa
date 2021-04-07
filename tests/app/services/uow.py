@@ -77,7 +77,7 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork[T]):  # type: ignore
         self.agg_class = agg_class
 
     def __repr__(self):
-        return f"SqlAlchemyUnitOfWork[{self.agg_class.Meta.entity_class}]"
+        return f"SqlAlchemyUnitOfWork[{self.agg_class.Meta}]"
 
     def __enter__(self) -> AbstractUnitOfWork[T]:
         """``with`` 블록에 진입했을 때 필요한 작업을 수행합니다.
@@ -86,7 +86,7 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork[T]):  # type: ignore
         """
         self.session = self.get_session()
         self.repo = SqlAlchemyRepository[T](
-            cast(Any, self.agg_class.Meta.entity_class),
+            cast(Any, self.agg_class),
             self.session,
         )
         return super().__enter__()

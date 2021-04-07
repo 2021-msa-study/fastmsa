@@ -1,4 +1,5 @@
 from __future__ import annotations
+from tests.integration import insert_product
 from typing import Optional, Any, cast
 from datetime import date
 
@@ -34,11 +35,18 @@ def insert_batch(
     )
 
 
-def delete_batch_and_allocation(session: Session, ref: str) -> None:
+def delete_product_batch_and_allocation(session: Session, ref: str) -> None:
     session.execute(
         """
         DELETE FROM allocation WHERE batch_id in (
         SELECT id FROM batch WHERE reference = :ref
+    )""",
+        {"ref": ref},
+    )
+    session.execute(
+        """
+        DELETE FROM product WHERE sku in (
+        SELECT sku FROM batch WHERE reference = :ref
     )""",
         {"ref": ref},
     )
@@ -54,14 +62,15 @@ def session_with_batch(get_session):
     def wrapper(ref: str, sku: str, qty: int, eta: Optional[date]):
         nonlocal batch_ref
         batch_ref = ref
-        delete_batch_and_allocation(session, batch_ref)
+        delete_product_batch_and_allocation(session, batch_ref)
         insert_batch(session, ref, sku, qty, eta)
+        insert_product(session, sku)
         session.commit()
         return session
 
     yield wrapper
 
-    delete_batch_and_allocation(session, batch_ref)
+    delete_product_batch_and_allocation(session, batch_ref)
 
 
 @pytest.fixture
@@ -73,12 +82,12 @@ def cleanup_uow(get_session):
     def wrapper(ref: str):
         nonlocal batch_ref
         batch_ref = ref
-        delete_batch_and_allocation(session, batch_ref)
+        delete_product_batch_and_allocation(session, batch_ref)
         return SqlAlchemyUnitOfWork(Product, lambda: session)
 
     yield wrapper
 
-    delete_batch_and_allocation(session, batch_ref)
+    delete_product_batch_and_allocation(session, batch_ref)
 
 
 def get_allocated_batch_ref(session: Session, orderid: str, sku: str) -> str:

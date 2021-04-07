@@ -18,6 +18,18 @@ def insert_order_line(session: Session) -> int:
     return cast(int, orderline_id)
 
 
+def insert_product(session: Session, sku: str = "", version_number=0) -> str:
+    if not sku:
+        sku = random_sku()
+
+    session.execute(
+        "INSERT INTO product (sku, version_number)" " VALUES (:sku, :version_number)",
+        dict(sku=sku, version_number=version_number),
+    )
+
+    return sku
+
+
 def insert_batch(session: Session, ref: str = "", sku: str = "") -> int:
     if not ref:
         ref = random_batchref()
