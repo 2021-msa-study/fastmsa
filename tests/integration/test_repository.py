@@ -2,8 +2,9 @@
 from tests.app.domain.aggregates import Product
 from sqlalchemy.orm import Session
 
+from fastmsa.repository import SqlAlchemyRepository
+
 from tests.app.domain.models import Batch, OrderLine
-from tests.app.adapters.repository import SqlAlchemyRepository
 
 from tests.integration import (
     insert_allocation,

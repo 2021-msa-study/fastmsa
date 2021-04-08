@@ -1,13 +1,8 @@
-from typing import Generic, Type, TypeVar
+from __future__ import annotations
+from fastmsa.domain import Aggregate
+
+from typing import Type
 from tests.app.domain.models import Batch, OrderLine, OutOfStock
-
-
-T = TypeVar("T")
-
-
-class Aggregate(Generic[T]):
-    class Meta:
-        entity_class: Type
 
 
 class Product(Aggregate[Batch]):

@@ -16,10 +16,9 @@ import abc
 
 from sqlalchemy.orm import Session
 
-from tests.app.adapters.repository import AbstractRepository, SqlAlchemyRepository
-from tests.app.adapters.orm import SessionMaker, get_session as default_session_factory
-
-from tests.app.domain.aggregates import Aggregate
+from fastmsa.repository import AbstractRepository, SqlAlchemyRepository
+from fastmsa.orm import SessionMaker, get_session as default_session_factory
+from fastmsa.domain import Aggregate
 
 T = TypeVar("T", bound=Aggregate)
 
