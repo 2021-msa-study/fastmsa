@@ -10,16 +10,16 @@ UoW 는 영구 저장소의 유일한 진입점이며, 로드된 객체의 최�
 - A *simple API* to our persistence concerns and a handy place to get a repository
 """
 from __future__ import annotations
-from tests.app.domain.aggregates import Aggregate
-from typing import Callable, Optional, Generic, Type, TypeVar, Any, cast
+from typing import Optional, Generic, Type, TypeVar, Any, cast
 from contextlib import AbstractContextManager
 import abc
-import typing
 
 from sqlalchemy.orm import Session
 
 from tests.app.adapters.repository import AbstractRepository, SqlAlchemyRepository
 from tests.app.adapters.orm import SessionMaker, get_session as default_session_factory
+
+from tests.app.domain.aggregates import Aggregate
 
 T = TypeVar("T", bound=Aggregate)
 

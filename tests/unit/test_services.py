@@ -2,17 +2,19 @@
 
 Low Gear(고속 기어) 테스트입니다.
 """
-from typing import Sequence, Optional, Generic, TypeVar, cast
+from typing import Sequence, Optional, TypeVar
 
 import pytest
+
+from tests.app.services.uow import AbstractUnitOfWork
+from tests.app import services
 
 from tests.app.adapters.repository import AbstractRepository
 from tests.app.adapters.orm import AbstractSession
 
-from tests.app.domain.models import Batch, OrderLine
 from tests.app.domain.aggregates import Product
-from tests.app.services.uow import AbstractUnitOfWork
-from tests.app import services
+from tests.app.domain.models import Batch
+
 
 T = TypeVar("T")
 

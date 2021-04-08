@@ -1,26 +1,23 @@
 from __future__ import annotations
-from tests.integration import insert_product
+
 from typing import Optional, Any, cast
 from datetime import date
 
 import pytest
 
 from tests.app.services.uow import (
-    AbstractUnitOfWork,
     SqlAlchemyUnitOfWork,
 )
-from tests.app.domain.models import Batch, OrderLine
+
 from tests.app.adapters.orm import (
     SessionMaker,
-    start_mappers,
-    init_engine,
-    sessionmaker,
     Session,
 )
-from tests.app import config
 
 from tests.app.domain.aggregates import Product
+from tests.app.domain.models import OrderLine
 
+from tests.integration import insert_product
 from tests import random_batchref, random_sku
 
 

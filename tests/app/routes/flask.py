@@ -1,21 +1,16 @@
 """Flask 엔드포인트 라우팅 모듈입니다."""
 from __future__ import annotations
 from datetime import datetime
-from typing import cast
 
 from flask import request, jsonify
 
 from tests.app.apps.flask import route, FlaskResponse
+
 from tests.app.services.uow import SqlAlchemyUnitOfWork
-from tests.app.domain.models import Batch, OrderLine, allocate
 from tests.app import services
 
 from tests.app.domain.aggregates import Product
-
-
-from tests.app.domain.aggregates import Product
-
-# XXX: pyright 에서 제대로 typing 을 찾지 못해 Casting 필요
+from tests.app.domain.models import Batch, OrderLine
 
 
 @route("/batches", methods=["POST"])
