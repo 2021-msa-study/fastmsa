@@ -21,12 +21,13 @@ def post_to_add_batch(ref: str, sku: str, qty: int, eta: Optional[str]) -> None:
     assert r.status_code == 201
 
 
-def delete_batches(refs: list[str]) -> None:
+def delete_batches(sku: str, refs: list[str]) -> None:
     """서비스 엔드포인트 `DELETE /batches` 를 통해 배치를 삭제합니다."""
     url = config.get_api_url()
     res = requests.delete(
         f"{url}/batches",
         json={
+            "sku": sku,
             "refs": refs,
         },
     )
@@ -34,26 +35,30 @@ def delete_batches(refs: list[str]) -> None:
 
 
 @pytest.fixture
-def setup_batches() -> list[str]:
-    batch_refs = []
+def setup_batches():
+    _batch_refs = []
+    _sku = ""
 
-    def wrapper(cnt_batches):
-        nonlocal batch_refs
-        batch_refs = [random_batchref(i) for i in range(cnt_batches)]
-        return batch_refs
+    def wrapper(sku: str, cnt_batches):
+        nonlocal _batch_refs
+        nonlocal _sku
+        _batch_refs = [random_batchref(i) for i in range(cnt_batches)]
+        _sku = sku
+        return _batch_refs
 
     yield wrapper
 
-    delete_batches(batch_refs)
+    delete_batches(_sku, _batch_refs)
 
 
 @pytest.mark.usefixtures("server")
 def test_happy_path_returns_201_and_allocated_batch(
     # pylint: disable=redefined-outer-name
-    setup_batches: Callable[[int], list[str]]
+    setup_batches: Callable[[str, int], list[str]]
 ) -> None:
-    earlybatch, laterbatch, otherbatch = setup_batches(3)
     sku, othersku = random_sku(), random_sku("other")
+    earlybatch, laterbatch = setup_batches(sku, 2)
+    [otherbatch] = setup_batches(othersku, 1)
     post_to_add_batch(laterbatch, sku, 100, "2021-01-02")
     post_to_add_batch(earlybatch, sku, 100, "2021-01-01")
     post_to_add_batch(otherbatch, othersku, 100, None)

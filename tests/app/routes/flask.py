@@ -1,20 +1,16 @@
 """Flask 엔드포인트 라우팅 모듈입니다."""
 from __future__ import annotations
 from datetime import datetime
-from typing import cast
 
 from flask import request, jsonify
 
 from tests.app.apps.flask import route, FlaskResponse
+
 from tests.app.services.uow import SqlAlchemyUnitOfWork
-from tests.app.domain.models import Batch, OrderLine, allocate
 from tests.app import services
 
-
-from tests.app.domain import aggregates
-
-# XXX: pyright 에서 제대로 typing 을 찾지 못해 Casting 필요
-Product = cast(aggregates.Aggregate[Batch], aggregates.Product)
+from tests.app.domain.aggregates import Product
+from tests.app.domain.models import Batch, OrderLine
 
 
 @route("/batches", methods=["POST"])
@@ -36,14 +32,18 @@ def delete_batches() -> FlaskResponse:
 
     주어진 레퍼런스 문자열 리스트를 이용해 배치들을 삭제합니다.
     """
+    sku: str = request.json["sku"]
     refs: list[str] = request.json["refs"]
+    batches = list[Batch]()
 
     with SqlAlchemyUnitOfWork(Product) as uow:
-        batches = [it for it in uow.repo.list() if it.reference in refs]
-        for batch in batches:
-            uow.repo.delete(batch)
-        print("batches delete:", batches)
-        uow.commit()
+        product = uow.repo.get(sku)
+        if product:
+            batches = [it for it in product.items if it.reference in refs]
+            for batch in batches:
+                product.items.remove(batch)
+            print("batches delete:", batches)
+            uow.commit()
 
         return jsonify({"deleted": len(batches)}), 201
 
@@ -51,14 +51,18 @@ def delete_batches() -> FlaskResponse:
 @route("/batches/allocate", methods=["POST"])
 def post_allocate_batch() -> FlaskResponse:
     """``POST /allocate`` 엔트포인트 요청을 처리합니다."""
+    batchref = None
+
     with SqlAlchemyUnitOfWork(Product) as uow:
-        batches = uow.repo.list()
-        line = OrderLine(
+        orderid, sku, qty = (
             request.json["orderid"],
             request.json["sku"],
             request.json["qty"],
         )
-        batchref = allocate(line, batches)
-        uow.commit()
+        product = uow.repo.get(sku)
+        if product:
+            line = OrderLine(orderid, sku, qty)
+            batchref = product.allocate(line)
+            uow.commit()
 
-    return jsonify({"batchref": batchref}), 201
+        return jsonify({"batchref": batchref}), 201

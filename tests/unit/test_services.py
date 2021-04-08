@@ -2,17 +2,19 @@
 
 Low Gear(고속 기어) 테스트입니다.
 """
-from typing import Sequence, Optional, Generic, TypeVar, cast
+from typing import Sequence, Optional, TypeVar
 
 import pytest
+
+from tests.app.services.uow import AbstractUnitOfWork
+from tests.app import services
 
 from tests.app.adapters.repository import AbstractRepository
 from tests.app.adapters.orm import AbstractSession
 
-from tests.app.domain.models import Batch, OrderLine
 from tests.app.domain.aggregates import Product
-from tests.app.services.uow import AbstractUnitOfWork
-from tests.app import services
+from tests.app.domain.models import Batch
+
 
 T = TypeVar("T")
 
@@ -76,13 +78,6 @@ def test_add_batch() -> None:
     services.batch.add("b1", "CRUNCHY-ARMCHAIR", 100, None, uow)
     assert uow.repo.get(reference="CRUNCHY-ARMCHAIR") is not None
     assert uow.committed
-
-
-def test_allocate_returns_allocation() -> None:
-    uow = FakeUnitOfWork()
-    services.batch.add("batch1", "COMPLICATED-LAMP", 100, None, uow)
-    result = services.batch.allocate("o1", "COMPLICATED-LAMP", 10, uow)
-    assert "batch1", result
 
 
 def test_returns_allocation() -> None:
