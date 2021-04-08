@@ -1,5 +1,7 @@
 """Flask 로 구현한 RESTful 서비스 앱."""
 from __future__ import annotations
+from tests.app.domain.aggregates import Product
+from tests.app.domain.models import Batch
 from typing import Callable, Optional, Any, cast
 
 from flask import Flask
@@ -38,6 +40,7 @@ def init_db(
         poolclass=config.get_db_poolclass(),
         drop_all=drop_all,
         show_log=show_log,
+        isolation_level="REPEATABLE READ",
     )
     get_session = cast(SessionMaker, sessionmaker(engine))
     return get_session
@@ -45,7 +48,7 @@ def init_db(
 
 def get_repo() -> SqlAlchemyRepository:
     """앱 DB와 연결된 레포지터리 객체를 리턴합니다."""
-    return SqlAlchemyRepository(get_session())
+    return SqlAlchemyRepository(Product, get_session())
 
 
 def init_app() -> Flask:

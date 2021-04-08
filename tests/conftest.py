@@ -1,7 +1,7 @@
 # pylint: disable=redefined-outer-name, protected-access
 """pytest 에서 사용될 전역 Fixture들을 정의합니다."""
 from __future__ import annotations
-from typing import Optional, Callable, Generator, List, Tuple
+from typing import Optional, Callable, Generator, Tuple, cast
 from datetime import datetime
 
 from sqlalchemy.orm import sessionmaker
@@ -18,10 +18,15 @@ from .app.services.uow import AbstractUnitOfWork, SqlAlchemyUnitOfWork
 from .app.apps.flask import init_app, init_db
 from .e2e import FlaskServerThread
 
+from tests.app.domain import aggregates
+
+# XXX: pyright 에서 제대로 typing 을 찾지 못해 Casting 필요
+Product = cast(aggregates.Aggregate[Batch], aggregates.Product)
+
 # types
 
 SqlAlchemyRepoMaker = Callable[[], SqlAlchemyRepository]
-AddStockLines = List[Tuple[str, str, int, Optional[str]]]
+AddStockLines = list[Tuple[str, str, int, Optional[str]]]
 """:meth:`add_stock` 함수의 인자 타입."""
 AddStockFunc = Callable[[AddStockLines], None]
 """:meth:`add_stock` 함수 타입."""
@@ -57,12 +62,12 @@ def get_session() -> SessionMaker:
 @pytest.fixture
 def get_repo(get_session: SessionMaker) -> SqlAlchemyRepoMaker:
     """:class:`SqlAlchemyRepository` 팩토리 함수를 리턴하는 픽스쳐입니다."""
-    return lambda: SqlAlchemyRepository(get_session())
+    return lambda: SqlAlchemyRepository(Batch, get_session())
 
 
 @pytest.fixture
-def get_uow(get_session: SessionMaker) -> AbstractUnitOfWork:
-    return lambda: SqlAlchemyUnitOfWork(get_session)
+def get_uow(get_session: SessionMaker) -> Callable[[], AbstractUnitOfWork[Batch]]:
+    return lambda: SqlAlchemyUnitOfWork(Product, get_session)
 
 
 @pytest.fixture

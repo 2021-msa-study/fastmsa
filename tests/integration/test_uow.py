@@ -1,13 +1,28 @@
 from __future__ import annotations
-from typing import Optional, Callable, cast
+from tests.integration import insert_product
+from typing import Optional, Any, cast
 from datetime import date
 
 import pytest
 
-from tests.app.services.uow import AbstractUnitOfWork, SqlAlchemyUnitOfWork
+from tests.app.services.uow import (
+    AbstractUnitOfWork,
+    SqlAlchemyUnitOfWork,
+)
 from tests.app.domain.models import Batch, OrderLine
-from tests.app.adapters.orm import start_mappers, init_engine, sessionmaker, Session
+from tests.app.adapters.orm import (
+    SessionMaker,
+    start_mappers,
+    init_engine,
+    sessionmaker,
+    Session,
+)
 from tests.app import config
+
+from tests.app.domain import aggregates
+
+# XXX: pyright 에서 제대로 typing 을 찾지 못해 Casting 필요
+Product = cast(aggregates.Aggregate[Batch], aggregates.Product)
 
 
 def insert_batch(
@@ -20,11 +35,18 @@ def insert_batch(
     )
 
 
-def delete_batch_and_allocation(session: Session, ref: str) -> None:
+def delete_product_batch_and_allocation(session: Session, ref: str) -> None:
     session.execute(
         """
         DELETE FROM allocation WHERE batch_id in (
         SELECT id FROM batch WHERE reference = :ref
+    )""",
+        {"ref": ref},
+    )
+    session.execute(
+        """
+        DELETE FROM product WHERE sku in (
+        SELECT sku FROM batch WHERE reference = :ref
     )""",
         {"ref": ref},
     )
@@ -40,14 +62,15 @@ def session_with_batch(get_session):
     def wrapper(ref: str, sku: str, qty: int, eta: Optional[date]):
         nonlocal batch_ref
         batch_ref = ref
-        delete_batch_and_allocation(session, batch_ref)
+        delete_product_batch_and_allocation(session, batch_ref)
         insert_batch(session, ref, sku, qty, eta)
+        insert_product(session, sku)
         session.commit()
         return session
 
     yield wrapper
 
-    delete_batch_and_allocation(session, batch_ref)
+    delete_product_batch_and_allocation(session, batch_ref)
 
 
 @pytest.fixture
@@ -59,12 +82,12 @@ def cleanup_uow(get_session):
     def wrapper(ref: str):
         nonlocal batch_ref
         batch_ref = ref
-        delete_batch_and_allocation(session, batch_ref)
-        return SqlAlchemyUnitOfWork(lambda: session)
+        delete_product_batch_and_allocation(session, batch_ref)
+        return SqlAlchemyUnitOfWork(Product, lambda: session)
 
     yield wrapper
 
-    delete_batch_and_allocation(session, batch_ref)
+    delete_product_batch_and_allocation(session, batch_ref)
 
 
 def get_allocated_batch_ref(session: Session, orderid: str, sku: str) -> str:
@@ -80,14 +103,20 @@ def get_allocated_batch_ref(session: Session, orderid: str, sku: str) -> str:
     return batchref
 
 
-def test_uow_can_retrieve_a_batch_and_allocate_to_it(get_session, session_with_batch):
+def test_uow_can_retrieve_a_batch_and_allocate_to_it(
+    get_session: SessionMaker,
+    session_with_batch: Any,
+):
     session = session_with_batch("batch1", "HIPSTER-WORKBENCH", 100, None)
-    uow = SqlAlchemyUnitOfWork(get_session)
+    uow = SqlAlchemyUnitOfWork(Product, get_session)
+
     with uow:
-        batch = cast(Batch, uow.batches.get(reference="batch1"))
-        line = OrderLine("o1", "HIPSTER-WORKBENCH", 10)
-        batch.allocate(line)
-        uow.commit()
+        product = uow.repo.get(reference="batch1")
+        if product:
+            batch = product
+            line = OrderLine("o1", "HIPSTER-WORKBENCH", 10)
+            batch.allocate(line)
+            uow.commit()
 
     batchref = get_allocated_batch_ref(session, "o1", "HIPSTER-WORKBENCH")
     assert batchref == "batch1"
