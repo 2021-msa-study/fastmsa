@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session
 from tests.app.adapters.repository import AbstractRepository, SqlAlchemyRepository
 from tests.app.adapters.orm import SessionMaker, get_session as default_session_factory
 
-T = TypeVar("T")
+T = TypeVar("T", bound=Aggregate)
 
 
 class AbstractUnitOfWork(Generic[T], AbstractContextManager[Session]):
@@ -59,7 +59,7 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork[T]):  # type: ignore
     # pylint: disable=super-init-not-called
     def __init__(
         self,
-        agg_class: Aggregate[T],
+        agg_class: Type[T],
         get_session: Optional[SessionMaker] = None,
         items: Optional[list[T]] = None,
     ) -> None:
