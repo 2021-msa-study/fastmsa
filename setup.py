@@ -20,7 +20,6 @@ setup(
     keywords=["fastmsa", "microservice" "framework", "sqlalchemy", "fastapi"],
     install_requires=[
         "fastapi",
-        "flask",
         "sqlalchemy",
     ],
     classifiers=[

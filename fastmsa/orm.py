@@ -66,7 +66,7 @@ def init_db(
 
     engine = init_engine(
         metadata,
-        db_url or config.get_db_url(),
+        db_url or (config and config.get_db_url()),
         connect_args=config.get_db_connect_args(),
         poolclass=config.get_db_poolclass(),
         drop_all=drop_all,

@@ -1,10 +1,7 @@
-fastapi
-flask
+fastmsa
 sqlalchemy
 requests
 psycopg2-binary
-
-jinja2
 
 pytest
 pylint

@@ -16,6 +16,7 @@
         "--convention=google"
     ],
     "python.formatting.provider": "black",
+    "python.languageServer": "Pylance",
     "python.analysis.typeCheckingMode": "basic",
     "editor.formatOnSave": true
 }
