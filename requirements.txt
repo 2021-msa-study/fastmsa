@@ -10,4 +10,4 @@ pytest
 pylint
 mypy
 pydocstyle
-black
+git+https://github.com/psf/black.git

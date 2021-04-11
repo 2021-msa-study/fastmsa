@@ -7,7 +7,7 @@ from tests.app.domain.models import Batch, OrderLine, OutOfStock
 
 class Product(Aggregate[Batch]):
     class Meta:
-        entity_class: Type[Batch] = Batch
+        entity_class = Batch
 
     def __init__(self, sku: str, items: list[Batch], version_number: int = 0):
         self.sku = sku

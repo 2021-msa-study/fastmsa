@@ -9,6 +9,7 @@
 
 Low Gear(고속 기어) 테스트입니다.
 """
+from fastmsa.core import AbstractConfig
 from fastmsa.domain import Aggregate
 from typing import Sequence, Optional, Type, TypeVar
 
@@ -17,6 +18,17 @@ from fastmsa.repository import AbstractRepository
 from fastmsa.orm import AbstractSession
 
 T = TypeVar("T", bound=Aggregate)
+
+
+class FakeConfig(AbstractConfig):
+    def get_db_url(self):
+        return "sqlite://"
+
+    def init_mappers(self):
+        pass
+
+    def validate(self):
+        pass
 
 
 class FakeRepository(AbstractRepository[T]):

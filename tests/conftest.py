@@ -2,6 +2,8 @@
 """pytest 에서 사용될 전역 Fixture들을 정의합니다."""
 from __future__ import annotations
 from typing import Optional, Callable, Generator, Tuple
+import fastapi
+from fastapi.applications import FastAPI
 from flask.app import Flask
 
 from sqlalchemy.orm import sessionmaker
@@ -13,7 +15,8 @@ import pytest
 from fastmsa.repository import SqlAlchemyRepository
 from fastmsa.orm import start_mappers, SessionMaker
 from fastmsa.uow import AbstractUnitOfWork, SqlAlchemyUnitOfWork
-from fastmsa.flask import init_app
+from fastmsa.flask import init_app as init_flask_app
+from fastmsa.api import init_app
 from fastmsa.test.e2e import FlaskServerThread
 from fastmsa import FastMsa
 
@@ -75,8 +78,14 @@ def get_uow(get_session: SessionMaker) -> Callable[[], AbstractUnitOfWork[Produc
     return lambda: SqlAlchemyUnitOfWork(Product, get_session)
 
 
-def init_routes(msa: FastMsa, app: Flask):
+def init_flask_routes(msa: FastMsa, app: Flask):
     from tests.app.routes import flask
+
+    ...
+
+
+def init_routes(msa: FastMsa, app: FastAPI):
+    from tests.app.routes import fastapi
 
     ...
 
@@ -93,8 +102,27 @@ def server(
     픽스쳐 사용후에는 `shutdown`을 통해 서버를 종료합니다.
     """
 
-    test_app = init_app(msa, init_routes)
+    test_app = init_flask_app(msa, init_flask_routes)
     server = FlaskServerThread(msa, test_app)
+    server.start()
+
+    yield server
+
+    server.shutdown()
+
+
+@pytest.fixture
+def server_fastapi(
+    msa: FastMsa, get_session: SessionMaker
+) -> Generator[FlaskServerThread, None, None]:
+    # noqa
+    """:class:`ServerThread` 로 구현된 재시작 가능한 멀티스레드 Flask 서버를
+    리턴하는 픽스쳐입니다.
+
+    픽스쳐 사용후에는 `shutdown`을 통해 서버를 종료합니다.
+    """
+
+    test_app = init_app(msa, init_routes)
     server.start()
 
     yield server

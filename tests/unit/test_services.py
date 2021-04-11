@@ -4,7 +4,6 @@ Low Gear(고속 기어) 테스트입니다.
 """
 import pytest
 
-from fastmsa.uow import AbstractUnitOfWork
 from fastmsa.test.unit import FakeUnitOfWork
 
 from tests.app import services

@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from typing import Any, Callable, Optional, Type
+
+import uvicorn
+
 import abc
 
 from sqlalchemy.pool import StaticPool, Pool
@@ -72,6 +75,16 @@ class FastMsa:
 
         if not DEFAULT_APP:
             DEFAULT_APP = self
+
+    @property
+    def app(self):
+        from .api import app
+
+        return app
+
+    def run(self, reload=False):
+        app = self.app
+        uvicorn.run("app", reload=reload)
 
     @property
     def config(self) -> AbstractConfig:
