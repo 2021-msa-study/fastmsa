@@ -5,12 +5,12 @@ from fastapi import routing
 
 import pytest
 
-from fastmsa import FastMsa
+from fastmsa import FastMSA
 from fastmsa.test.api import TestClient
 
 
 @pytest.fixture
-def client(msa: FastMsa):
+def client(msa: FastMSA):
     cli = TestClient(msa.app)
 
     yield cli
@@ -18,7 +18,7 @@ def client(msa: FastMsa):
     msa.app.router.routes = []  # clear test routes
 
 
-def test_hello_routes(msa: FastMsa, client: TestClient):
+def test_hello_routes(msa: FastMSA, client: TestClient):
     @msa.app.get("/")
     async def read_hello():
         return {"msg": "hello world"}
@@ -28,7 +28,7 @@ def test_hello_routes(msa: FastMsa, client: TestClient):
     assert response.json() == {"msg": "hello world"}
 
 
-def test_hello_routes2(msa: FastMsa, client: TestClient):
+def test_hello_routes2(msa: FastMSA, client: TestClient):
     routes: list[routing.BaseRoute] = msa.app.router.routes
 
     @msa.app.get("/")

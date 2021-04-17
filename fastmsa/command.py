@@ -1,4 +1,4 @@
-"""Command line script for FastMsa.
+"""Command line script for FastMSA.
 
 Test
 """

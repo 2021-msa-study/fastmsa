@@ -63,10 +63,10 @@ class AbstractConfig(abc.ABC):
         return StaticPool
 
 
-DEFAULT_APP: Optional[FastMsa] = None
+DEFAULT_APP: Optional[FastMSA] = None
 
 
-class FastMsa:
+class FastMSA:
     def __init__(self, name: str, config: AbstractConfig):
         global DEFAULT_APP
 
@@ -102,4 +102,4 @@ def get_config() -> AbstractConfig:
     if DEFAULT_APP:
         return DEFAULT_APP.config
 
-    raise ValueError("초기화된 FastMsa 앱이 없습니다.")
+    raise ValueError("초기화된 FastMSA 앱이 없습니다.")

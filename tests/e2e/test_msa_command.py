@@ -1,4 +1,4 @@
-"""FastMsa Command Test.
+"""FastMSA Command Test.
 
 $ msa --help
 ...(help string)

@@ -9,7 +9,7 @@ from werkzeug.serving import make_server
 from flask import Flask
 import uvicorn
 
-from fastmsa.core import FastMsa
+from fastmsa.core import FastMSA
 
 
 class FastApiServer(uvicorn.Server):
@@ -35,7 +35,7 @@ class FastApiServer(uvicorn.Server):
 class FlaskServerThread(threading.Thread):
     """여러 다른 Flask App 컨텍스트를 교체하고 재시작 가능한 멀티스레드 서버."""
 
-    def __init__(self, msa: FastMsa, app: Flask):
+    def __init__(self, msa: FastMSA, app: Flask):
         threading.Thread.__init__(self)
         self.srv = make_server(
             msa.config.get_api_host(), msa.config.get_api_port(), app
@@ -80,7 +80,7 @@ class CustomFlask(Flask):
 _FLASK_SERVER: FlaskServerThread
 
 
-def start_flask_server(msa: FastMsa, app: CustomFlask) -> None:
+def start_flask_server(msa: FastMSA, app: CustomFlask) -> None:
     """:class:`ServerThread` 를 시작합니다."""
     global _FLASK_SERVER  # pylint: disable=invalid-name, global-statement
     _FLASK_SERVER = FlaskServerThread(msa, app)
@@ -95,7 +95,7 @@ def stop_flask_server() -> None:
         server.shutdown()
 
 
-def restart_flask_server(msa: FastMsa, app: CustomFlask) -> None:
+def restart_flask_server(msa: FastMSA, app: CustomFlask) -> None:
     """기존에 시작중인 :class:`ServerThread` 를 종료후 재시작 합니다."""
     stop_flask_server()
     start_flask_server(msa, app)

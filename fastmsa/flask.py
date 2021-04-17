@@ -1,6 +1,6 @@
 """Flask 로 구현한 RESTful 서비스 앱."""
 from __future__ import annotations
-from fastmsa.core import FastMsa
+from fastmsa.core import FastMSA
 from typing import Callable, Any, cast
 
 from fastmsa.orm import init_db
@@ -16,7 +16,7 @@ FlaskResponse = tuple[Any, int]
 app = Flask(__name__)  # pylint: disable=invalid-name
 
 
-def init_app(msa: FastMsa, init_hook: Callable[[FastMsa, Flask], Any] = None) -> Flask:
+def init_app(msa: FastMSA, init_hook: Callable[[FastMSA, Flask], Any] = None) -> Flask:
     """Flask 앱을 초기화 합니다.
 
     :mod:`app.routes.flask` 모듈에서 엔드포인트 라우팅 설정을 로드하고

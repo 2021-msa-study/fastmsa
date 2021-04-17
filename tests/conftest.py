@@ -18,7 +18,7 @@ from fastmsa.uow import AbstractUnitOfWork, SqlAlchemyUnitOfWork
 from fastmsa.flask import init_app as init_flask_app
 from fastmsa.api import init_app
 from fastmsa.test.e2e import FlaskServerThread
-from fastmsa import FastMsa
+from fastmsa import FastMSA
 
 from tests.app.domain.aggregates import Product
 from tests.app.adapters.orm import init_mappers
@@ -37,7 +37,7 @@ from tests.app.config import Config
 
 @pytest.fixture
 def msa():
-    return FastMsa(__name__, config=Config())
+    return FastMSA(__name__, config=Config())
 
 
 @pytest.fixture
@@ -55,7 +55,7 @@ def session() -> Session:
 
 
 @pytest.fixture
-def get_session(msa: FastMsa) -> SessionMaker:
+def get_session(msa: FastMSA) -> SessionMaker:
     """:class:`.Session` 팩토리 메소드(:class:`~app.adapters.orm.SessionMaker`)
     를 리턴하는 픽스쳐 입니다.
 
@@ -78,13 +78,13 @@ def get_uow(get_session: SessionMaker) -> Callable[[], AbstractUnitOfWork[Produc
     return lambda: SqlAlchemyUnitOfWork(Product, get_session)
 
 
-def init_flask_routes(msa: FastMsa, app: Flask):
+def init_flask_routes(msa: FastMSA, app: Flask):
     from tests.app.routes import flask
 
     ...
 
 
-def init_routes(msa: FastMsa, app: FastAPI):
+def init_routes(msa: FastMSA, app: FastAPI):
     from tests.app.routes import fastapi
 
     ...
@@ -93,7 +93,7 @@ def init_routes(msa: FastMsa, app: FastAPI):
 @pytest.fixture
 # pylint: disable=unused-argument
 def server(
-    msa: FastMsa, get_session: SessionMaker
+    msa: FastMSA, get_session: SessionMaker
 ) -> Generator[FlaskServerThread, None, None]:
     # noqa
     """:class:`ServerThread` 로 구현된 재시작 가능한 멀티스레드 Flask 서버를
@@ -113,7 +113,7 @@ def server(
 
 @pytest.fixture
 def server_fastapi(
-    msa: FastMsa, get_session: SessionMaker
+    msa: FastMSA, get_session: SessionMaker
 ) -> Generator[FlaskServerThread, None, None]:
     # noqa
     """:class:`ServerThread` 로 구현된 재시작 가능한 멀티스레드 Flask 서버를

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 
 from fastapi import FastAPI
-from fastmsa.core import FastMsa
+from fastmsa.core import FastMSA
 from typing import Callable, Any, cast
 
 from pydantic import BaseModel
@@ -13,7 +13,7 @@ app = FastAPI(title=__name__)  # pylint: disable=invalid-name
 
 
 def init_app(
-    msa: FastMsa, init_hook: Callable[[FastMsa, FastAPI], Any] = None
+    msa: FastMSA, init_hook: Callable[[FastMSA, FastAPI], Any] = None
 ) -> FastAPI:
     """Flask 앱을 초기화 합니다.
 

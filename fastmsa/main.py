@@ -1,9 +1,9 @@
 from fastmsa.test import FakeConfig
-from fastmsa import FastMsa
+from fastmsa import FastMSA
 from fastmsa.api import get
 
 config = FakeConfig()
-msa = FastMsa(__name__, config)
+msa = FastMSA(__name__, config)
 
 
 @get("/")

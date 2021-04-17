@@ -5,7 +5,7 @@ from typing import Callable, Optional
 import pytest
 import requests
 
-from fastmsa import FastMsa
+from fastmsa import FastMSA
 
 from tests import random_batchref, random_orderid, random_sku
 
@@ -13,7 +13,7 @@ AddStockFunc = Callable[[list[tuple[str, str, int, Optional[str]]]], None]
 
 
 def post_to_add_batch(
-    msa: FastMsa, ref: str, sku: str, qty: int, eta: Optional[str]
+    msa: FastMSA, ref: str, sku: str, qty: int, eta: Optional[str]
 ) -> None:
     """서비스 엔드포인트 `POST /batches` 를 통해 배치를 추가합니다."""
     url = msa.config.get_api_url()
@@ -23,7 +23,7 @@ def post_to_add_batch(
     assert r.status_code == 201
 
 
-def delete_batches(msa: FastMsa, sku: str, refs: list[str]) -> None:
+def delete_batches(msa: FastMSA, sku: str, refs: list[str]) -> None:
     """서비스 엔드포인트 `DELETE /batches` 를 통해 배치를 삭제합니다."""
     url = msa.config.get_api_url()
     res = requests.delete(
@@ -37,7 +37,7 @@ def delete_batches(msa: FastMsa, sku: str, refs: list[str]) -> None:
 
 
 @pytest.fixture
-def setup_batches(msa: FastMsa):
+def setup_batches(msa: FastMSA):
     _batch_refs = []
     _sku = ""
 
@@ -56,7 +56,7 @@ def setup_batches(msa: FastMsa):
 @pytest.mark.usefixtures("server")
 def test_happy_path_returns_201_and_allocated_batch(
     # pylint: disable=redefined-outer-name
-    msa: FastMsa,
+    msa: FastMSA,
     setup_batches: Callable[[str, int], list[str]],
 ) -> None:
     sku, othersku = random_sku(), random_sku("other")

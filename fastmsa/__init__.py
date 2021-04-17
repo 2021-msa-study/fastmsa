@@ -1,1 +1,1 @@
-from .core import FastMsa
+from .core import FastMSA
