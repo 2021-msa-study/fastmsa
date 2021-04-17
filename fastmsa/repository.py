@@ -1,19 +1,20 @@
 """레포지터리 패턴 구현."""
 from __future__ import annotations
-from typing import List, Optional, Type, Union, Literal, Generic, TypeVar, Any, cast
+from typing import List, Optional, Type, Literal, Generic, TypeVar, Any, cast
 from contextlib import ContextDecorator
 import abc
-import typing
 
 from sqlalchemy.orm import Session
 
-from tests.app.domain.models import Batch, OrderLine
+from fastmsa.domain import Aggregate
 
-T = TypeVar("T")
+T = TypeVar("T", bound=Aggregate)
 
 
 class AbstractRepository(Generic[T], abc.ABC, ContextDecorator):
     """Repository 패턴의 추상 인터페이스 입니다."""
+
+    entity_class: Type[T]
 
     def __enter__(self) -> AbstractRepository[T]:
         """`module`:contextmanager`의 필수 인터페이스 구현."""
@@ -81,18 +82,16 @@ class SqlAlchemyRepository(AbstractRepository[T]):
 
     def get(self, reference: str = "", **kwargs: str) -> Optional[T]:
         if reference:
-            return self.session.query(self.entity_class).get(reference)  # type: ignore
+            return self.session.query(self.entity_class).get(reference)
 
         filter_by = {k: v for k, v in kwargs.items() if v is not None}
-        return self.session.query(self.entity_class).filter_by(**filter_by).first()  # type: ignore
+        return self.session.query(self.entity_class).filter_by(**filter_by).first()
 
     def delete(self, item: T) -> None:
         self.session.delete(item)
 
     def list(self):
-        return cast(list[T], self.session.query(self.entity_class).all())
+        return self.session.query(self.entity_class).all()
 
     def clear(self) -> None:
-        self.session.execute("DELETE FROM allocation")
-        self.session.execute("DELETE FROM batch")
-        self.session.execute("DELETE FROM order_line")
+        self.session.query(self.entity_class.Meta.entity_class)

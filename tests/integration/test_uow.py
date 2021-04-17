@@ -5,14 +5,8 @@ from datetime import date
 
 import pytest
 
-from tests.app.services.uow import (
-    SqlAlchemyUnitOfWork,
-)
-
-from tests.app.adapters.orm import (
-    SessionMaker,
-    Session,
-)
+from fastmsa.uow import SqlAlchemyUnitOfWork
+from fastmsa.orm import SessionMaker, Session
 
 from tests.app.domain.aggregates import Product
 from tests.app.domain.models import OrderLine

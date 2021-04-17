@@ -2,11 +2,10 @@
 from typing import Sequence, Optional, cast
 from datetime import date
 
-from tests.app.domain.models import Batch, OrderLine
-from tests.app.domain import models
-from tests.app.domain.aggregates import Product
+from fastmsa.uow import AbstractUnitOfWork
 
-from tests.app.services.uow import AbstractUnitOfWork
+from tests.app.domain.models import Batch, OrderLine
+from tests.app.domain.aggregates import Product
 
 
 class InvalidSku(Exception):

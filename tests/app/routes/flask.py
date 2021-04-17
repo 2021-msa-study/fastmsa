@@ -4,9 +4,9 @@ from datetime import datetime
 
 from flask import request, jsonify
 
-from tests.app.apps.flask import route, FlaskResponse
+from fastmsa.uow import SqlAlchemyUnitOfWork
+from fastmsa.flask import route, FlaskResponse
 
-from tests.app.services.uow import SqlAlchemyUnitOfWork
 from tests.app import services
 
 from tests.app.domain.aggregates import Product
