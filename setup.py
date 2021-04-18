@@ -21,6 +21,7 @@ setup(
     install_requires=[
         "fastapi",
         "sqlalchemy",
+        "uvicorn",
     ],
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -29,4 +30,9 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3.9",
     ],
+    entry_points={
+        "console_scripts": [
+            "msa = fastmsa.command:console_main",
+        ]
+    },
 )
