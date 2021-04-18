@@ -103,3 +103,9 @@ def get_config() -> AbstractConfig:
         return DEFAULT_APP.config
 
     raise ValueError("초기화된 FastMSA 앱이 없습니다.")
+
+
+class FastMSAError(Exception):
+    """``FastMSA`` 와 관련된 모든 에러의 기본 클래스."""
+
+    ...

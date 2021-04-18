@@ -2,8 +2,23 @@
 from __future__ import annotations
 from subprocess import Popen, PIPE
 from collections import defaultdict
+import io
+import sys
+import contextlib
 
-from IPython.display import SVG
+
+@contextlib.contextmanager
+def captured_output():
+    """
+    Return captured output
+    """
+    new_out, new_err = io.StringIO(), io.StringIO()
+    old_out, old_err = sys.stdout, sys.stderr
+    try:
+        sys.stdout, sys.stderr = new_out, new_err
+        yield sys.stdout, sys.stderr
+    finally:
+        sys.stdout, sys.stderr = old_out, old_err
 
 
 def get_test_counts(path: str = "tests") -> dict[str, int]:

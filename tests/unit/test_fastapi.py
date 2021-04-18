@@ -1,4 +1,4 @@
-"""FastMsa의 API Test 기능을 테스트합니다.
+"""FastMSA의 API Test 기능을 테스트합니다.
 """
 from typing import cast
 from fastapi import routing
