@@ -7,9 +7,9 @@ with open(path.join(this_dir, "README.md")) as f:
     long_description = f.read()
 
 data_files = []
-directories = glob.glob('fastmsa/templates')
+directories = glob.glob("fastmsa/templates?")
 for directory in directories:
-    files = glob.glob(directory + '*')
+    files = glob.glob(directory + "*")
     data_files.append((directory, files))
 
 setup(
@@ -39,9 +39,7 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3.9",
     ],
-    package_data={
-        'fastmsa': data_files,
-    },
+    data_files=data_files,
     entry_points={
         "console_scripts": [
             "msa = fastmsa.command:console_main",
