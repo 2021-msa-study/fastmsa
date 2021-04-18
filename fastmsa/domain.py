@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Generic, Sequence, Type, TypeVar, Protocol
-from tests.app.domain.models import Batch, OrderLine, OutOfStock
+from typing import Any, Generic, Type, TypeVar, Protocol
 
 
 class Entity(Protocol):

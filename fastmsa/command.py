@@ -74,11 +74,17 @@ class FastMSACommand:
             template_dir = "templates/app"
             res_names = scan_resource_dir(template_dir)
 
+            assert res_names
+
             for res_name in res_names:
+                # XXX: Temporary fix
+                if "__pycache__" in res_name:
+                    continue
                 rel_path = res_name.replace(template_dir + "/", "")
                 target_path = self.path / rel_path
                 target_path.parent.mkdir(parents=True, exist_ok=True)
-                text = resource_string("fastmsa", res_name).decode()
+                text = resource_string("fastmsa", res_name)
+                text = text.decode()
 
                 if target_path.name.endswith(".j2"):  # Jinja2 template
                     target_path = target_path.parent / target_path.name[:-3]

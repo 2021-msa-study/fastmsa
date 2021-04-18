@@ -1,20 +1,29 @@
 from setuptools import setup
 from os import path
-import glob
+import os
+import sys
 
 this_dir = path.abspath(path.dirname(__file__))
 with open(path.join(this_dir, "README.md")) as f:
     long_description = f.read()
 
-data_files = []
-directories = glob.glob("fastmsa/templates?")
-for directory in directories:
-    files = glob.glob(directory + "*")
-    data_files.append((directory, files))
+
+def package_files(directory):
+    paths = []
+    for (path, _, filenames) in os.walk(directory):
+        if "__pycache__" in path:
+            continue
+        for filename in filenames:
+            paths.append(os.path.join("..", path, filename))
+    return paths
+
+
+extra_files = package_files("fastmsa/templates")
 
 setup(
     name="fastmsa",
-    packages=["fastmsa"],
+    packages=["fastmsa", "fastmsa.test"],
+    package_data={"": extra_files},
     version="0.1",
     license="MIT",
     description="FastMSA - full-stack framework for microservice architecture applications",
@@ -39,7 +48,6 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3.9",
     ],
-    data_files=data_files,
     entry_points={
         "console_scripts": [
             "msa = fastmsa.command:console_main",
