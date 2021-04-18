@@ -20,6 +20,7 @@ setup(
     keywords=["fastmsa", "microservice" "framework", "sqlalchemy", "fastapi"],
     install_requires=[
         "fastapi",
+        "uvicorn",
         "sqlalchemy",
         "uvicorn",
     ],
