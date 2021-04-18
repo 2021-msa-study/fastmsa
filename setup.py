@@ -23,6 +23,7 @@ setup(
         "uvicorn",
         "sqlalchemy",
         "uvicorn",
+        "jinja2",
     ],
     classifiers=[
         "Development Status :: 3 - Alpha",

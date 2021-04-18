@@ -33,6 +33,13 @@ from fastmsa.utils import scan_resource_dir, cwd
 
 
 @pytest.fixture
+def tempdir():
+    path = Path(tempfile.mkdtemp())
+    yield path
+    shutil.rmtree(path)
+
+
+@pytest.fixture
 def msa():
     path = tempfile.mkdtemp()
 
@@ -58,19 +65,19 @@ def test_resource_files():
     assert [] != "\n".join(app_template_files)
 
 
-def test_msa_init_in_exist_path():
+def test_msa_init_in_exist_path(tempdir: Path):
     """이미 존재하는 디렉토리에서 초기화 하는 상황을 고려.
 
     테스트 순서:
         - 임시 디렉토리 생성
         - 디렉토리에서
     """
-    path = Path(tempfile.mkdtemp())
-    with cwd(path):
+    with cwd(tempdir):
         msa = FastMSACommand()
         # 암시적으로 초기화 할 경우 디렉토리 이름을 딴 프트젝트가 되어야함.
-        assert path.name == msa.name
-        assert path == msa.path
+        assert tempdir.name == msa.name
+        assert tempdir == msa.path
+
         msa.init()
 
 

@@ -29,7 +29,9 @@ class FastMSACommand:
         ``name`` should include only alpha-numeric chracters and underscore('_').
         """
         self.path = Path(os.path.abspath(path or "."))
-        self._name: Optional[str] = None
+        self._name: Optional[str] = name
+        if not name:
+            self._name = self.path.name
 
     @property
     def name(self):
@@ -50,27 +52,10 @@ class FastMSACommand:
     def is_init(self):
         """이미 초기화된 프트젝트인지 확인합니다.
 
-        체크 방법:
-            - README.md 파일 존재
-            - requirements.txt 존재
-            - adapters / domain / routes / services / tests 디렉토리 존재
+        체크 방법:`
+            현재 디렉토리가 비어 있지 않은 경우 초기화된 프로젝트로 판단합니다.
         """
-        return all(
-            (
-                (self.path / "README.md").exists(),
-                (self.path / "requirements.txt").exists(),
-                (self.path / "tests").is_dir(),
-                all(
-                    (self.path / self.name / it).is_dir()
-                    for it in (
-                        "adapters",
-                        "domain",
-                        "routes",
-                        "services",
-                    )
-                ),
-            )
-        )
+        return any(self.path.iterdir())
 
     def init(self):
         """Initialize project.
