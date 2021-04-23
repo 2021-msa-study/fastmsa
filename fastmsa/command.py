@@ -135,7 +135,6 @@ class FastMSACommand:
 
         if not dry_run:
             sys.path.insert(0, str(self.path))
-            importlib.import_module(f"{self.name}.__main__")
             uvicorn.run(f"{self.name}.__main__:app", reload=reload)
 
     def load_config(self) -> AbstractConfig:

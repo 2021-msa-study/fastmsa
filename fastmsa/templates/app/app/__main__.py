@@ -1,15 +1,9 @@
 from fastmsa.command import FastMSACommand
+from fastmsa.api import app
 
 
 cmd = FastMSACommand()
 msa = cmd.init_app()
-app = msa.app
-
-
-def main():
-    cmd = FastMSACommand()
-    cmd.run()
-
 
 if __name__ == "__main__":
-    main()
+    cmd.run()
