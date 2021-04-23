@@ -17,6 +17,7 @@ import importlib
 import jinja2
 from sqlalchemy.sql.schema import MetaData
 from starlette.routing import BaseRoute
+import uvicorn
 
 from fastmsa.core import AbstractConfig, FastMSA, FastMSAError
 from fastmsa.utils import cwd, scan_resource_dir
@@ -105,12 +106,7 @@ class FastMSACommand:
             if self._name:
                 (self.path / "app").rename(self._name)
 
-    def run(self, dry_run=False, reload=True, **kwargs):
-        """FastMSA 애플리케이션을 실행합니다."""
-        print("--------------------------------------------------")
-        print("FastMSA:", self.name)
-        print("--------------------------------------------------")
-
+    def init_app(self):
         print("- load config.")
         self._msa = FastMSA(self._name, self.load_config())
 
@@ -127,11 +123,18 @@ class FastMSACommand:
         print(f"{len(routes)} routes installed.")
 
         print("- init database       :", self._msa.config.get_db_url())
-
         print("--------------------------------------------------")
+        return self._msa
+
+    def run(self, dry_run=False, reload=True, banner=True, **kwargs):
+        """FastMSA 애플리케이션을 실행합니다."""
+        if banner:
+            print("--------------------------------------------------")
+            print("FastMSA:", self.name)
+            print("--------------------------------------------------")
 
         if not dry_run:
-            self._msa.run(reload=reload)
+            uvicorn.run(f"{self.name}:app", reload=False)
 
     def load_config(self) -> AbstractConfig:
         sys.path.insert(0, str(self.path))
