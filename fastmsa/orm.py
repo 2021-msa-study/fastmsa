@@ -26,6 +26,8 @@ SessionMaker = Callable[[], Session]
 ScopedSession = AbstractContextManager[Session]
 metadata: Optional[MetaData] = None
 
+__session_factory: Optional[SessionMaker] = None
+
 
 class AbstractSession(abc.ABC):
     """세션의 일반적인 작업(`commit`, `rollback`) 을 추상화한 클래스."""
@@ -40,10 +42,17 @@ def get_session() -> SessionMaker:
     """기본설정으로 SqlAlchemy Session 팩토리를 만듭니다."""
     from fastmsa.core import get_config
 
-    engine = init_engine(
-        start_mappers(), get_config().get_db_url(), isolation_level="REPEATABLE READ"
-    )
-    return cast(SessionMaker, sessionmaker(engine))
+    global __session_factory
+
+    if not __session_factory:
+        engine = init_engine(
+            start_mappers(),
+            get_config().get_db_url(),
+            isolation_level="REPEATABLE READ",
+        )
+        __session_factory = cast(SessionMaker, sessionmaker(engine))
+
+    return __session_factory
 
 
 _get_session: Optional[SessionMaker] = None  # pylint: disable=invalid-name
@@ -71,7 +80,7 @@ def init_db(
         poolclass=config.get_db_poolclass(),
         drop_all=drop_all,
         show_log=show_log,
-        isolation_level="REPEATABLE READ",
+        # isolation_level="REPEATABLE READ",
     )
     _get_session = cast(SessionMaker, sessionmaker(engine))
     return _get_session
