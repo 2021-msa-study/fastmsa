@@ -131,7 +131,7 @@ class FastMSACommand:
         print("--------------------------------------------------")
 
         if not dry_run:
-            self._msa.run(relaod=reload)
+            self._msa.run(reload=reload)
 
     def load_config(self) -> AbstractConfig:
         sys.path.insert(0, str(self.path))
