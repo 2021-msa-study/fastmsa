@@ -79,7 +79,7 @@ class SqlAlchemyRepository(AbstractRepository[T]):
         return self
 
     def close(self) -> None:
-        getattr(self, "close") and self.session.close()
+        hasattr(self, "close") and self.session.close()
 
     def add(self, item: T) -> None:
         self.session.add(item)
