@@ -21,10 +21,13 @@ testapp $ msa mapper MyClothing
 """
 from pathlib import Path
 from textwrap import dedent
+from threading import Lock
+from types import ModuleType
 import os
 import sys
 import tempfile
 import shutil
+from _pytest.python import Module
 
 import pytest
 
@@ -41,16 +44,32 @@ def tempdir():
 
 @pytest.fixture
 def msa():
+    from fastmsa.api import app
+
     path = tempfile.mkdtemp()
 
-    msa = FastMSACommand("testapp", path)
+    msa = FastMSACommand(Path(path).name, path)
     msa.init()
 
-    sys.path.insert(0, os.getcwd())
-    (msa.path / "__init__.py").touch()
+    sys.path.insert(0, str(msa.path))
+
+    # `tests` 로 시작하는 모듈이 이미 로드되어 테스트를 위해 만든
+    # 프로의트의 `tests` 모듈과 충돌하므로 기존 모듈을 잠시 pop 해둔다.
+
+    old_modules = dict[str, ModuleType]()
+    old_routes = list(app.routes)
+    app.router.routes.clear()
+
+    for name, module in list(sys.modules.items()):
+        if name.startswith("tests"):
+            old_modules[name] = sys.modules.pop(name)
 
     yield msa
 
+    for name, module in old_modules.items():
+        sys.modules[name] = module
+
+    app.router.routes = old_routes
     sys.path.pop(0)
     shutil.rmtree(msa.path)  # cleanup temporary directory
 
@@ -85,11 +104,11 @@ def test_msa_init(msa: FastMSACommand):
     assert os.path.exists(msa.path)
 
     root_files = os.listdir(msa.path)
-    src_dir_files = os.listdir(msa.path / msa._name)
+    src_dir_files = os.listdir(msa.path / msa.name)
     test_dir_files = os.listdir(msa.path / "tests")
 
-    assert 8 == len(root_files)
-    assert 5 == len(src_dir_files)
+    assert 7 == len(root_files)
+    assert 6 == len(src_dir_files)
     assert 5 == len(test_dir_files)
 
     with cwd(msa.path):
@@ -106,10 +125,8 @@ def test_msa_init(msa: FastMSACommand):
 def test_msa_generate_orm_code(msa: FastMSACommand):
     with cwd(msa.path):
         ret = pytest.main(["tests"])
+        assert (msa.path / msa.name / "domain" / "models.py").exists()
         assert pytest.ExitCode.OK == ret
-        name: str = msa._name
-
-        assert (msa.path / name / "domain" / "models.py").exists()
 
 
 def test_msa_render_template(msa: FastMSACommand):
@@ -128,3 +145,28 @@ def test_fail_init_again(msa: FastMSACommand):
         assert msa.is_init()
         with pytest.raises(FastMSAInitError):
             msa.init()
+
+
+def test_msa_run_command(msa: FastMSACommand):
+    """다음처럼 부트스트랩 과정을 진행합니다.
+
+    $ msa run --verbose
+    Booting FastMSA app...
+    - init domain models... 3 models found.
+    - init orm mappings.... 2 tables mapped.
+    - init api endpoints... 4 routes installed.
+    Done in 0.1s.
+    Server listening at localhost:5000...
+    """
+    with cwd(msa.path):
+        msa.run(dry_run=True)
+
+
+def test_msa_load_domain(msa: FastMSACommand):
+    with cwd(msa.path):
+        assert 3 == len(msa.load_domain())
+
+
+def test_msa_load_orm_mappers(msa: FastMSACommand):
+    with cwd(msa.path):
+        assert 3 == len(msa.load_orm_mappers().tables)

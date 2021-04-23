@@ -83,8 +83,7 @@ class FastMSA:
         return app
 
     def run(self, reload=False):
-        app = self.app
-        uvicorn.run("app", reload=reload)
+        uvicorn.run(f"fastmsa.api:app", reload=reload)
 
     @property
     def config(self) -> AbstractConfig:
@@ -107,5 +106,9 @@ def get_config() -> AbstractConfig:
 
 class FastMSAError(Exception):
     """``FastMSA`` 와 관련된 모든 에러의 기본 클래스."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+        self.message = message
 
     ...

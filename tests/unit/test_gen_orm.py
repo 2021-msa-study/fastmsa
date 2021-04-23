@@ -112,5 +112,14 @@ def test_template():
     """
     )
 
-    output = tpl.render(model=model_def)
-    assert "" == output
+    output = tpl.render(model=model_def).strip()
+    expected = """
+        batch = Table(
+        "Batch",
+        metadata,
+        Column("id", Integer, primary_key=True, autoincrement=True),
+        Column("ref", String(255)),
+        Column("qty", Integer),
+    )
+    """.strip()
+    assert expected == output

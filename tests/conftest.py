@@ -2,7 +2,6 @@
 """pytest 에서 사용될 전역 Fixture들을 정의합니다."""
 from __future__ import annotations
 from typing import Optional, Callable, Generator, Tuple
-import fastapi
 from fastapi.applications import FastAPI
 from flask.app import Flask
 
@@ -13,7 +12,7 @@ from sqlalchemy.pool import StaticPool
 import pytest
 
 from fastmsa.repository import SqlAlchemyRepository
-from fastmsa.orm import start_mappers, SessionMaker
+from fastmsa.orm import clear_mappers, start_mappers, SessionMaker
 from fastmsa.uow import AbstractUnitOfWork, SqlAlchemyUnitOfWork
 from fastmsa.flask import init_app as init_flask_app
 from fastmsa.api import init_app
@@ -49,7 +48,8 @@ def session() -> Session:
     engine = create_engine(
         "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
     )
-    metadata = start_mappers(use_exist=True, init_hooks=[init_mappers])
+    clear_mappers()
+    metadata = start_mappers(use_exist=False, init_hooks=[init_mappers])
     metadata.create_all(engine)
     return sessionmaker(engine)()
 

@@ -44,7 +44,7 @@ class AbstractRepository(Generic[T], abc.ABC, ContextDecorator):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def list(self) -> List[T]:
+    def all(self) -> List[T]:
         """모든 배치 객체 리스트를 조회합니다."""
         raise NotImplementedError
 
@@ -90,7 +90,7 @@ class SqlAlchemyRepository(AbstractRepository[T]):
     def delete(self, item: T) -> None:
         self.session.delete(item)
 
-    def list(self):
+    def all(self) -> List[T]:
         return self.session.query(self.entity_class).all()
 
     def clear(self) -> None:

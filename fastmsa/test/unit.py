@@ -48,7 +48,7 @@ class FakeRepository(AbstractRepository[T]):
     def delete(self, batch: T) -> None:
         self._items.remove(batch)
 
-    def list(self) -> list[T]:
+    def all(self) -> list[T]:
         return list(self._items)
 
     def close(self) -> None:

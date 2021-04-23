@@ -1,7 +1,7 @@
 """Flask 로 구현한 RESTful 서비스 앱."""
 from __future__ import annotations
 from fastmsa.core import FastMSA
-from typing import Callable, Any, cast
+from typing import Callable, Any, Optional, cast
 
 from fastmsa.orm import SessionMaker, init_db
 
@@ -15,7 +15,7 @@ FlaskResponse = tuple[Any, int]
 # globals
 app = Flask(__name__)  # pylint: disable=invalid-name
 
-get_session: SessionMaker
+get_session: Optional[SessionMaker] = None
 
 
 def init_app(msa: FastMSA, init_hook: Callable[[FastMSA, Flask], Any] = None) -> Flask:
