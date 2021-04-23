@@ -67,7 +67,7 @@ class SqlAlchemyRepository(AbstractRepository[T]):
         """임의의 Aggregate T 를 받아 T에대한 Repostiory를 초기화합니다."""
         self.entity_class = entity_class
         if not session:
-            self.session = get_sessionmaker()
+            self.session = get_sessionmaker()()
         else:
             self.session = session
 
@@ -79,7 +79,7 @@ class SqlAlchemyRepository(AbstractRepository[T]):
         return self
 
     def close(self) -> None:
-        hasattr(self, "close") and self.session.close()
+        hasattr(self.session, "close") and self.session.close()
 
     def add(self, item: T) -> None:
         self.session.add(item)
