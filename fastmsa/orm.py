@@ -38,7 +38,7 @@ class AbstractSession(abc.ABC):
         raise NotImplementedError
 
 
-def get_session() -> SessionMaker:
+def get_sessionmaker() -> SessionMaker:
     """기본설정으로 SqlAlchemy Session 팩토리를 만듭니다."""
     from fastmsa.core import get_config
 
@@ -48,7 +48,7 @@ def get_session() -> SessionMaker:
         engine = init_engine(
             start_mappers(),
             get_config().get_db_url(),
-            isolation_level="REPEATABLE READ",
+            # isolation_level="REPEATABLE READ",
         )
         __session_factory = cast(SessionMaker, sessionmaker(engine))
 
