@@ -18,4 +18,4 @@ class Config(AbstractConfig):
 
             return f"postgresql://{db_user}:{db_pass}@{db_host}/{db_name}"
 
-        return "sqllite://"
+        return "sqlite://"
