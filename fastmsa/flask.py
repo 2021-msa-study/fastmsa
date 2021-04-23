@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastmsa.core import FastMSA
 from typing import Callable, Any, cast
 
-from fastmsa.orm import init_db
+from fastmsa.orm import SessionMaker, init_db
 
 from flask import Flask
 
@@ -15,6 +15,8 @@ FlaskResponse = tuple[Any, int]
 # globals
 app = Flask(__name__)  # pylint: disable=invalid-name
 
+get_session: SessionMaker
+
 
 def init_app(msa: FastMSA, init_hook: Callable[[FastMSA, Flask], Any] = None) -> Flask:
     """Flask 앱을 초기화 합니다.
@@ -22,12 +24,14 @@ def init_app(msa: FastMSA, init_hook: Callable[[FastMSA, Flask], Any] = None) ->
     :mod:`app.routes.flask` 모듈에서 엔드포인트 라우팅 설정을 로드하고
     :meth:`.init_db` 를 호출하여 DB를 초기화 합니다.
     """
+    global get_session  # pylint: disable=global-statement, invalid-name
 
     if init_hook:
         init_hook(msa, app)
 
-    global get_session  # pylint: disable=global-statement, invalid-name
-    get_session = msa.init_db()
+    if not get_session:
+        get_session = msa.init_db()
+
     return app
 
 

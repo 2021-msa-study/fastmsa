@@ -103,6 +103,15 @@ def test_msa_init(msa: FastMSACommand):
         assert pytest.ExitCode.TESTS_FAILED == ret
 
 
+def test_msa_generate_orm_code(msa: FastMSACommand):
+    with cwd(msa.path):
+        ret = pytest.main(["tests"])
+        assert pytest.ExitCode.OK == ret
+        name: str = msa._name
+
+        assert (msa.path / name / "domain" / "models.py").exists()
+
+
 def test_msa_render_template(msa: FastMSACommand):
     """``msa`` 명령으로 생성된 파일들이 템플릿파일을 잘 변환했는지 테스트합니다."""
     with cwd(msa.path):
