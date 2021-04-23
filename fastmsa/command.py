@@ -105,7 +105,7 @@ class FastMSACommand:
             if self._name:
                 (self.path / "app").rename(self._name)
 
-    def run(self, dry_run=False, **kwargs):
+    def run(self, dry_run=False, reload=True, **kwargs):
         """FastMSA 애플리케이션을 실행합니다."""
         print("--------------------------------------------------")
         print("FastMSA:", self.name)
@@ -131,7 +131,7 @@ class FastMSACommand:
         print("--------------------------------------------------")
 
         if not dry_run:
-            self._msa.run()
+            self._msa.run(relaod=reload)
 
     def load_config(self) -> AbstractConfig:
         sys.path.insert(0, str(self.path))
