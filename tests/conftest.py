@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 import pytest
 
-from fastmsa.repository import SqlAlchemyRepository
+from fastmsa.repo import SqlAlchemyRepository
 from fastmsa.orm import clear_mappers, start_mappers, SessionMaker
 from fastmsa.uow import AbstractUnitOfWork, SqlAlchemyUnitOfWork
 from fastmsa.flask import init_app as init_flask_app

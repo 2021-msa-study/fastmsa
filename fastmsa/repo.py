@@ -7,6 +7,7 @@ import abc
 from sqlalchemy.orm import Session
 
 from fastmsa.domain import Aggregate
+from fastmsa.orm import get_session as default_session_factory
 
 T = TypeVar("T", bound=Aggregate)
 
@@ -62,10 +63,13 @@ class AbstractRepository(Generic[T], abc.ABC, ContextDecorator):
 class SqlAlchemyRepository(AbstractRepository[T]):
     """SqlAlchemy ORM을 저장소로 하는 :class:`AbstractRepository` 구현입니다."""
 
-    def __init__(self, entity_class: Type[T], session: Session):
+    def __init__(self, entity_class: Type[T], session: Session = None):
         """임의의 Aggregate T 를 받아 T에대한 Repostiory를 초기화합니다."""
         self.entity_class = entity_class
-        self.session = session  # pylint: disable=invalid-name
+        if not session:
+            self.session = default_session_factory()
+        else:
+            self.session = session
 
     def __repr__(self):
         return f"SqlAlchemyRepository[{self.entity_class}]"

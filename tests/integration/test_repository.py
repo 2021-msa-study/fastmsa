@@ -2,7 +2,7 @@
 from tests.app.domain.aggregates import Product
 from sqlalchemy.orm import Session
 
-from fastmsa.repository import SqlAlchemyRepository
+from fastmsa.repo import SqlAlchemyRepository
 
 from tests.app.domain.models import Batch, OrderLine
 

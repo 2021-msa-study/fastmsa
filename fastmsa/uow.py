@@ -16,7 +16,7 @@ import abc
 
 from sqlalchemy.orm import Session
 
-from fastmsa.repository import AbstractRepository, SqlAlchemyRepository
+from fastmsa.repo import AbstractRepository, SqlAlchemyRepository
 from fastmsa.orm import SessionMaker, get_session as default_session_factory
 from fastmsa.domain import Aggregate
 

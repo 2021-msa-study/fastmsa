@@ -14,7 +14,7 @@ from fastmsa.domain import Aggregate
 from typing import Sequence, Optional, Type, TypeVar
 
 from fastmsa.uow import AbstractUnitOfWork
-from fastmsa.repository import AbstractRepository
+from fastmsa.repo import AbstractRepository
 from fastmsa.orm import AbstractSession
 
 T = TypeVar("T", bound=Aggregate)
