@@ -7,7 +7,7 @@ from fastmsa.schema import from_dataclass, BaseModel
 from ..domain.models import User
 
 
-@from_dataclass(User, excludes=["email"])
+@from_dataclass(User, excludes=["email"], orm_mode=True)
 class UserReadSchema:  # noqa
     ...
 
