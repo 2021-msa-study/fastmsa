@@ -12,7 +12,7 @@ D = TypeVar("D")
 T = TypeVar("T")
 
 
-def from_dataclass(
+def schema_from(
     DataClass: Type[D],
     excludes: Optional[list[str]] = None,
     orm_mode=False,

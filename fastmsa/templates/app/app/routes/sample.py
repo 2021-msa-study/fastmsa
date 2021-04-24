@@ -2,17 +2,17 @@
 from typing import cast
 from fastmsa.api import get, post
 from fastmsa.repo import SqlAlchemyRepository
-from fastmsa.schema import from_dataclass, BaseModel
+from fastmsa.schema import schema_from, BaseModel
 
 from ..domain.models import User
 
 
-@from_dataclass(User, excludes=["email"], orm_mode=True)
+@schema_from(User, excludes=["email"], orm_mode=True)
 class UserReadSchema:  # noqa
     ...
 
 
-@from_dataclass(User)
+@schema_from(User)
 class UserCreateSchema:  # noqa
     ...
 
