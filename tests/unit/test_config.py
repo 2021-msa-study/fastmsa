@@ -3,7 +3,6 @@
 import pytest
 
 from fastmsa import FastMSA
-from fastmsa.core import AbstractConfig
 from fastmsa.test.unit import FakeConfig
 
 

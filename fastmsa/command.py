@@ -76,7 +76,6 @@ class FastMSACommand:
             1. Copy ``templates/app``  to ``project_name``
             j2. Rename ``templates/app`` to ``project_name/project_name``
         """
-
         if self.is_init():
             raise FastMSAInitError(f"project already initialized at: {self.path}")
 
@@ -148,7 +147,6 @@ class FastMSACommand:
 
         ./<package_dir>/domain/**/*.py 파일을 읽어서 클래스 타입 리스트를 리턴합니다.
         """
-
         domains = list[type]()
 
         for fname in glob.glob(f"./{self.name}/domain/*.py"):

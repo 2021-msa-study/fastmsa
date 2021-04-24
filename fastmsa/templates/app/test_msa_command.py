@@ -28,7 +28,6 @@ from textwrap import dedent
 from types import ModuleType
 
 import pytest
-from _pytest.python import Module
 
 from fastmsa.command import FastMSACommand, FastMSAInitError
 from fastmsa.utils import cwd, scan_resource_dir

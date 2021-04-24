@@ -6,7 +6,7 @@ from typing import Any, Callable, Optional, cast
 from flask import Flask
 
 from fastmsa.core import FastMSA
-from fastmsa.orm import SessionMaker, init_db
+from fastmsa.orm import SessionMaker
 
 # types
 _AnyFunc = Callable[..., Any]

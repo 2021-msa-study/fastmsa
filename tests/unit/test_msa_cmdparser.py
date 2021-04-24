@@ -1,5 +1,4 @@
 import argparse
-from unittest.mock import patch
 
 
 def test_argparse_subcommand():

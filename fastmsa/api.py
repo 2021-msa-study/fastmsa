@@ -1,11 +1,9 @@
 """FastAPI 로 구현한 RESTful 서비스 앱."""
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 from fastapi import FastAPI
-from pydantic import BaseModel
 
 from fastmsa.core import FastMSA
-from fastmsa.orm import SessionMaker
 
 # globals
 app = FastAPI(title=__name__)  # pylint:

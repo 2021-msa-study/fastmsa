@@ -1,1 +1,1 @@
-from .core import FastMSA
+from .core import FastMSA  # noqa
