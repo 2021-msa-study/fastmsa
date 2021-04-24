@@ -47,10 +47,14 @@ def schema_from(
         ) -> Type[Union[BaseModel, Type[D], Type[T]]]:
             from dataclasses import is_dataclass
 
-            annotations = dict(
-                (name, type)
-                for name, type in DataClass.__annotations__.items()
-                if not excludes or name not in excludes
+            annotations = (
+                dict(
+                    (name, type)
+                    for name, type in DataClass.__annotations__.items()
+                    if not excludes or name not in excludes
+                )
+                if hasattr(DataClass, "__annotations__")
+                else {}
             )
 
             for field_name, field_type in annotations.items():
