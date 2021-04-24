@@ -1,5 +1,6 @@
 """스키마 변환, 검증 조작등의 기능을 담당하는 모듈입니다."""
-from typing import Any, Type, cast, Callable, Optional, TypeVar, Union
+import collections
+from typing import Any, NamedTuple, Type, cast, Callable, Optional, TypeVar, Union
 
 from pydantic import BaseModel
 from pydantic.main import ModelMetaclass
@@ -12,9 +13,18 @@ T = TypeVar("T")
 
 
 def from_dataclass(
-    DataClass: Type[D], excludes: Optional[list[str]] = None
+    DataClass: Type[D],
+    excludes: Optional[list[str]] = None,
+    orm_mode=False,
 ) -> Callable[[Type[T]], Type[Union[BaseModel, D, T]]]:
     """`dataclasses.dataclass` 모델을 Pydantic `BaseModel` 로 변환합니다."""
+
+    class ModelSchema(BaseModel):
+        Config = collections.namedtuple(
+            "Config",
+            ["orm_mode"],
+            defaults=[orm_mode],
+        )
 
     def _wrapper(TargetClass: Type[T]):
         def _get_model(DataClass: Type[D], excludes=[]) -> AnyType:
@@ -38,9 +48,11 @@ def from_dataclass(
             }
             return cast(
                 AnyType,
-                ModelMetaclass(TargetClass.__name__, (BaseModel,), namespace),
+                ModelMetaclass(TargetClass.__name__, (ModelSchema,), namespace),
             )
 
-        return _get_model(DataClass, excludes=excludes)
+        model = _get_model(DataClass, excludes=excludes)
+        model.Config.orm_mode = orm_mode
+        return model
 
     return _wrapper
