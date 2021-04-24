@@ -20,6 +20,7 @@ from starlette.routing import BaseRoute
 
 from fastmsa.core import FastMSA, FastMSA, FastMSAError
 from fastmsa.utils import cwd, scan_resource_dir
+import fastmsa.core
 
 YELLOW, CYAN, RED = Fore.YELLOW, Fore.CYAN, Fore.RED
 
@@ -204,17 +205,7 @@ class FastMSACommand:
 
     def load_config(self, name, module_name: Optional[str] = None) -> FastMSA:
         """`name` 정보를 이용해  `config.py` 를 로드한다."""
-        if (self.path / name / "config.py").exists():
-            module_name = module_name or name
-
-            if self.path not in sys.path:
-                sys.path.insert(0, str(self.path))
-
-            conf_module = importlib.import_module(f"{module_name}.config")
-            config = cast(Type[FastMSA], getattr(conf_module, "Config"))
-            return config(name)
-
-        return FastMSA(name)
+        return fastmsa.core.load_config(self.path, name, module_name)
 
     def load_domain(self) -> list[type]:
         """도메인 클래스를 로드합니다.

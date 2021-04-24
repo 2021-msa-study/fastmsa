@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-import abc
-from typing import Any, Callable, Optional, Type
+from pathlib import Path
+from typing import Any, Optional, Type, cast
+import sys
+import importlib
 
 import uvicorn
 from sqlalchemy.pool import Pool, StaticPool
@@ -18,6 +20,12 @@ class FastMSA:
 
         if title:
             self.title = title
+
+    @property
+    def api(self):
+        from fastmsa.api import app  # noqa
+
+        return app
 
     def get_api_host(self) -> str:
         """Get API server's host address."""
@@ -85,3 +93,28 @@ class FastMSAError(Exception):
         self.message = message
 
     ...
+
+
+def load_config(
+    path: Optional[Path] = None,
+    name: Optional[str] = None,
+    module_name: Optional[str] = None,
+) -> FastMSA:
+    """`name` 정보를 이용해  `config.py` 를 로드한다."""
+    if not path:
+        path = Path(".").absolute()
+
+    if not name:
+        name = path.name
+
+    if (path / name / "config.py").exists():
+        module_name = module_name or name
+
+        if path not in sys.path:
+            sys.path.insert(0, str(path))
+
+        conf_module = importlib.import_module(f"{module_name}.config")
+        config = cast(Type[FastMSA], getattr(conf_module, "Config"))
+        return config(name)
+
+    return FastMSA(name)

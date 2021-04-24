@@ -16,7 +16,7 @@ def post_to_add_batch(
     msa: FastMSA, ref: str, sku: str, qty: int, eta: Optional[str]
 ) -> None:
     """서비스 엔드포인트 `POST /batches` 를 통해 배치를 추가합니다."""
-    url = msa.config.get_api_url()
+    url = msa.get_api_url()
     r = requests.post(
         f"{url}/batches", json={"ref": ref, "sku": sku, "qty": qty, "eta": eta}
     )
@@ -25,7 +25,7 @@ def post_to_add_batch(
 
 def delete_batches(msa: FastMSA, sku: str, refs: list[str]) -> None:
     """서비스 엔드포인트 `DELETE /batches` 를 통해 배치를 삭제합니다."""
-    url = msa.config.get_api_url()
+    url = msa.get_api_url()
     res = requests.delete(
         f"{url}/batches",
         json={
@@ -66,7 +66,7 @@ def test_happy_path_returns_201_and_allocated_batch(
     post_to_add_batch(msa, earlybatch, sku, 100, "2021-01-01")
     post_to_add_batch(msa, otherbatch, othersku, 100, None)
     data = {"orderid": random_orderid(), "sku": sku, "qty": 3}
-    url = msa.config.get_api_url()
+    url = msa.get_api_url()
     res = requests.post(f"{url}/batches/allocate", json=data)
     assert res.status_code == 201
     assert res.json()["batchref"] == earlybatch

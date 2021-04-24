@@ -24,6 +24,9 @@ A = TypeVar("A", bound=Aggregate)
 class FakeConfig(FastMSA):
     """단위 테스트를 위한 Fake 설정."""
 
+    def __init__(self):
+        super().__init__(__name__)
+
     def get_db_url(self):
         return "sqlite://"
 

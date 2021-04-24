@@ -6,7 +6,7 @@ from typing import Any, Callable, Optional, cast
 from flask import Flask
 
 from fastmsa.core import FastMSA
-from fastmsa.orm import SessionMaker
+from fastmsa.orm import SessionMaker, init_db
 
 # types
 _AnyFunc = Callable[..., Any]
@@ -31,7 +31,7 @@ def init_app(msa: FastMSA, init_hook: Callable[[FastMSA, Flask], Any] = None) ->
         init_hook(msa, app)
 
     if not get_session:
-        get_session = msa.init_db()
+        get_session = init_db()
 
     return app
 

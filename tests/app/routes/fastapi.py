@@ -1,37 +1,14 @@
 """FastAPI 엔드포인트 라우팅 모듈입니다."""
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Optional
-
 from fastmsa.api import delete, post
-from fastmsa.schema import BaseModel
 from fastmsa.uow import SqlAlchemyUnitOfWork
+
 from tests.app import services
 from tests.app.domain.aggregates import Product
 from tests.app.domain.models import Batch, OrderLine
 
-
-class BatchAdd(BaseModel):
-    eta: Optional[datetime]
-    ref: str
-    sku: str
-    qty: int
-
-
-class BatchDelete(BaseModel):
-    eta: Optional[datetime]
-    refs: list[str]
-    sku: str
-    qty: int
-
-
-class BatchAllocate(BaseModel):
-    eta: Optional[datetime]
-    orderid: str
-    ref: str
-    sku: str
-    qty: int
+from ..schema.batch import BatchAdd, BatchAllocate, BatchDelete
 
 
 @post("/batches", status_code=201)

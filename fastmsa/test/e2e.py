@@ -37,9 +37,7 @@ class FlaskServerThread(threading.Thread):
 
     def __init__(self, msa: FastMSA, app: Flask):
         threading.Thread.__init__(self)
-        self.srv = make_server(
-            msa.config.get_api_host(), msa.config.get_api_port(), app
-        )
+        self.srv = make_server(msa.get_api_host(), msa.get_api_port(), app)
         self.ctx = app.app_context()
         self.ctx.push()
 

@@ -15,7 +15,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
 from sqlalchemy.pool import Pool
 
-from fastmsa.core import FastMSA
+from fastmsa.core import FastMSA, load_config
 
 SessionMaker = Callable[[], Session]
 """Session 팩토리 타입."""
@@ -36,14 +36,13 @@ class AbstractSession(abc.ABC):
 
 def get_sessionmaker() -> SessionMaker:
     """기본설정으로 SqlAlchemy Session 팩토리를 만듭니다."""
-    from fastmsa.core import get_config
 
     global __session_factory
 
     if not __session_factory:
         engine = init_engine(
             start_mappers(),
-            get_config().get_db_url(),
+            load_config().get_db_url(),
             # isolation_level="REPEATABLE READ",
         )
         __session_factory = cast(SessionMaker, sessionmaker(engine))

@@ -14,7 +14,7 @@ from sqlalchemy.pool import StaticPool
 from fastmsa import FastMSA
 from fastmsa.api import init_app
 from fastmsa.flask import init_app as init_flask_app
-from fastmsa.orm import SessionMaker, clear_mappers, start_mappers
+from fastmsa.orm import SessionMaker, clear_mappers, start_mappers, init_db
 from fastmsa.repo import SqlAlchemyRepository
 from fastmsa.test.e2e import FlaskServerThread
 from fastmsa.uow import AbstractUnitOfWork, SqlAlchemyUnitOfWork
@@ -34,7 +34,7 @@ from tests.app.config import Config
 
 @pytest.fixture
 def msa():
-    return FastMSA(__name__, config=Config())
+    return Config(__name__)
 
 
 @pytest.fixture
@@ -62,7 +62,7 @@ def get_session(msa: FastMSA) -> SessionMaker:
 
     :rtype: :class:`~app.adapters.orm.SessionMaker`
     """
-    return msa.init_db(drop_all=True, init_hooks=[init_mappers])
+    return init_db(drop_all=True, init_hooks=[init_mappers])
 
 
 @pytest.fixture
