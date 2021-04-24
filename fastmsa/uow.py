@@ -13,27 +13,28 @@ from __future__ import annotations
 
 import abc
 from contextlib import AbstractContextManager
-from typing import Any, Generic, Optional, Type, TypeVar, cast
+from typing import Any, Generic, Optional, Type, TypeVar
 
 from sqlalchemy.orm import Session
 
-from fastmsa.domain import Aggregate
+from fastmsa.domain import Aggregate, Entity
 from fastmsa.orm import SessionMaker, get_sessionmaker
 from fastmsa.repo import AbstractRepository, SqlAlchemyRepository
 
-T = TypeVar("T", bound=Aggregate)
+E = TypeVar("E", bound=Entity)
+A = TypeVar("A", bound=Aggregate)
 
 
-class AbstractUnitOfWork(Generic[T], AbstractContextManager[Session]):
+class AbstractUnitOfWork(Generic[A], AbstractContextManager[Session]):
     """UnitOfWork 패턴의 추상 인터페이스입니다.
 
     UnitOfWork(UoW)는 영구 저장소의 유일한 진입점이며, 로드된 객체의
     최신 상태를 계속 트래킹 합니다.
     """
 
-    repo: AbstractRepository[T]
+    repo: AbstractRepository[A]
 
-    def __enter__(self) -> AbstractUnitOfWork[T]:
+    def __enter__(self) -> AbstractUnitOfWork[A]:
         """``with`` 블록에 진입했을때 실행되는 메소드입니다."""
         return self
 
@@ -53,15 +54,15 @@ class AbstractUnitOfWork(Generic[T], AbstractContextManager[Session]):
         raise NotImplementedError
 
 
-class SqlAlchemyUnitOfWork(AbstractUnitOfWork[T]):  # type: ignore
+class SqlAlchemyUnitOfWork(AbstractUnitOfWork[A]):  # type: ignore
     """``SqlAlchemy`` ORM을 이용한 UnitOfWork 패턴 구현입니다."""
 
     # pylint: disable=super-init-not-called
     def __init__(
         self,
-        agg_class: Type[T],
+        agg_class: Type[A],
         get_session: Optional[SessionMaker] = None,
-        items: Optional[list[T]] = None,
+        items: Optional[list[A]] = None,
     ) -> None:
         """``SqlAlchemy`` 기반의 UoW를 초기화합니다."""
         if items is None:
@@ -77,16 +78,16 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork[T]):  # type: ignore
         self.agg_class = agg_class
 
     def __repr__(self):
-        return f"SqlAlchemyUnitOfWork[{self.agg_class.Meta}]"
+        return f"SqlAlchemyUnitOfWork[{self.agg_class}]"
 
-    def __enter__(self) -> AbstractUnitOfWork[T]:
+    def __enter__(self) -> AbstractUnitOfWork[A]:
         """``with`` 블록에 진입했을 때 필요한 작업을 수행합니다.
 
         세션을 할당하고, ``batches`` 레포지터리를 초기화합니다.
         """
         self.session = self.get_session()
-        self.repo = SqlAlchemyRepository[T](
-            cast(Any, self.agg_class),
+        self.repo = SqlAlchemyRepository[A](
+            self.agg_class,
             self.session,
         )
         return super().__enter__()

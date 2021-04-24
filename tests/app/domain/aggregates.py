@@ -9,6 +9,7 @@ class Product(Aggregate[Batch]):
         entity_class = Batch
 
     def __init__(self, sku: str, items: list[Batch], version_number: int = 0):
+        self.id = sku  # Entity 프로토콜을 준수하기 위해 반드시 정의해야 하는 속성.
         self.sku = sku
         self.items = items
         self.version_number = version_number

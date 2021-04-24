@@ -9,13 +9,12 @@ class Entity(Protocol):
     id: Any  # PK 컬럼으로 id 라는 필드를 제공해야 합니다.
 
 
-T = TypeVar("T", bound=Entity)
-S = TypeVar("S")
+E = TypeVar("E", bound=Entity)
 
 
-class Aggregate(Generic[T]):
-    items: list[T]
-    type: Type[T]
+class Aggregate(Entity, Generic[E]):
+    items: list[E]
+    type: Type[E]
 
     class Meta:
         entity_class: Type

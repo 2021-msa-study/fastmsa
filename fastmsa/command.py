@@ -16,10 +16,10 @@ from typing import Sequence, cast
 
 import jinja2
 import uvicorn
+from colorama import Back, Fore, Style
 from pkg_resources import resource_string
 from sqlalchemy.sql.schema import MetaData
 from starlette.routing import BaseRoute
-from colorama import Fore, Back, Style
 
 from fastmsa.core import AbstractConfig, FastMSA, FastMSAError
 from fastmsa.utils import cwd, scan_resource_dir

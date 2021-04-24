@@ -2,6 +2,7 @@
 from datetime import date
 from typing import Optional, Sequence
 
+from fastmsa.domain import Aggregate
 from fastmsa.uow import AbstractUnitOfWork
 from tests.app.domain.aggregates import Product
 from tests.app.domain.models import Batch, OrderLine
@@ -25,7 +26,11 @@ def is_valid_sku(sku: str, batches: Sequence[Batch]) -> bool:
 
 
 def add(
-    ref: str, sku: str, qty: int, eta: Optional[date], uow: AbstractUnitOfWork[Product]
+    ref: str,
+    sku: str,
+    qty: int,
+    eta: Optional[date],
+    uow: AbstractUnitOfWork[Product],
 ) -> None:
     """UOW를 이용해 배치를 추가합니다."""
     with uow:
