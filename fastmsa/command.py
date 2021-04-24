@@ -1,7 +1,4 @@
-"""Command line script for FastMSA.
-
-Test
-"""
+"""Command line script for FastMSA."""
 from __future__ import annotations
 
 import glob
@@ -24,6 +21,19 @@ from starlette.routing import BaseRoute
 
 from fastmsa.core import AbstractConfig, FastMSA, FastMSAError
 from fastmsa.utils import cwd, scan_resource_dir
+
+
+YELLOW, CYAN, RED = Fore.YELLOW, Fore.CYAN, Fore.RED
+
+
+def fg(text, color=Fore.WHITE):
+    """텍스트를 지정된 ANSI 컬러로 출력합니다."""
+    return f"{color}{text}{Fore.RESET}"
+
+
+def bold(text, color=Fore.WHITE):
+    """텍스트를 지정된 ANSI 컬러와 밝기 효과를 주어 출력합니다."""
+    return f"{Style.BRIGHT}{color}{text}{Style.RESET_ALL}"
 
 
 class FastMSAInitError(FastMSAError):
@@ -81,7 +91,9 @@ class FastMSACommand:
         """
         if self.is_init():
             if force:
-                print("WARNING: *force* initializing project...")
+                print(
+                    f"{bold('FastMSA WARN:', YELLOW)} *{bold('force')}* initializing project..."
+                )
             else:
                 raise FastMSAInitError(f"project already initialized at: {self.path}")
 
@@ -117,15 +129,8 @@ class FastMSACommand:
 
     def init_app(self):
         logger = logging.getLogger("uvicorn")
-        YELLOW, CYAN = Fore.YELLOW, Fore.CYAN
-
-        def fg(text, color=Fore.WHITE):
-            return f"{color}{text}{Fore.RESET}"
-
-        def bold(text, color=Fore.WHITE):
-            return f"{Style.BRIGHT}{color}{text}{Style.RESET_ALL}"
-
         logger.info(bold("Load config and initialize app..."))
+
         self._msa = FastMSA(self._name, self.load_config())
         bullet = bold("✔️", Fore.GREEN)
 
@@ -258,7 +263,10 @@ class FastMSACommandParser:
             else:
                 getattr(self._cmd, ns.command)()
         except FastMSAError as e:
-            print(f"{Fore.RED}{Style.BRIGHT}FastMSA ERROR:", e.message, file=sys.stderr)
+            print(
+                f"{bold('FastMSA ERROR:', RED)} {fg(e.message, YELLOW)}",
+                file=sys.stderr,
+            )
 
     def init(self, ns: Namespace):
         self._cmd.init(force=ns.force)
