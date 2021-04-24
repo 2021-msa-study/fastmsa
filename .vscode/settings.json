@@ -3,7 +3,10 @@
         "**/__pycache__": true,
         "**/.ipynb_checkpoints": true,
         "**/.mypy_cache": true,
-        "**/.pytest_cache": true
+        "**/.pytest_cache": true,
+        "*.egg-info": true,
+        "build/": true,
+        "dist/": true,
     },
     "python.testing.pytestArgs": [
         "tests"

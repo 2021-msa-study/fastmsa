@@ -2,7 +2,6 @@
 from datetime import date
 from typing import Optional, Sequence
 
-from fastmsa.domain import Aggregate
 from fastmsa.uow import AbstractUnitOfWork
 from tests.app.domain.aggregates import Product
 from tests.app.domain.models import Batch, OrderLine

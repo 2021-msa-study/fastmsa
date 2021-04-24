@@ -1,1 +1,1 @@
-from . import batch
+from . import batch  # noqa

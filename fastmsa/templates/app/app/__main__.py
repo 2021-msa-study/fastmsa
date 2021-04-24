@@ -1,3 +1,4 @@
+from fastmsa.api import app  # noqa
 from fastmsa.command import FastMSACommand
 
 cmd = FastMSACommand()

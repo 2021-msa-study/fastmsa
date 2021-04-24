@@ -9,14 +9,15 @@ import importlib
 import logging
 import os
 import sys
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace, RawTextHelpFormatter
 from inspect import getmembers
 from pathlib import Path
+from textwrap import dedent
 from typing import Sequence, cast
 
 import jinja2
 import uvicorn
-from colorama import Back, Fore, Style
+from colorama import Fore, Style
 from pkg_resources import resource_string
 from sqlalchemy.sql.schema import MetaData
 from starlette.routing import BaseRoute
@@ -71,15 +72,18 @@ class FastMSACommand:
         """
         return any(self.path.iterdir())
 
-    def init(self):
+    def init(self, force=False):
         """Initialize project.
 
         Steps:
-            1. Copy ``templates/app``  to ``project_name``
-            j2. Rename ``templates/app`` to ``project_name/project_name``
+            1. Copy `templates/app`  to `<project_name>`
+            2. Move `templates/app` to `<project_name>/<project_name>`
         """
         if self.is_init():
-            raise FastMSAInitError(f"project already initialized at: {self.path}")
+            if force:
+                print("WARNING: *force* initializing project...")
+            else:
+                raise FastMSAInitError(f"project already initialized at: {self.path}")
 
         with cwd(self.path):
             template_dir = "templates/app"
@@ -88,10 +92,14 @@ class FastMSACommand:
             assert res_names
 
             for res_name in res_names:
+                res_name.startswith("templates/app/app/")
+                res_name2 = res_name.replace(
+                    "templates/app/app/", f"templates/app/{self._name}/"
+                )
                 # XXX: Temporary fix
                 if "__pycache__" in res_name:
                     continue
-                rel_path = res_name.replace(template_dir + "/", "")
+                rel_path = res_name2.replace(template_dir + "/", "")
                 target_path = self.path / rel_path
                 target_path.parent.mkdir(parents=True, exist_ok=True)
                 text = resource_string("fastmsa", res_name)
@@ -104,34 +112,41 @@ class FastMSACommand:
 
                 target_path.write_text(text)
 
-            if self._name:
-                (self.path / "app").rename(self._name)
+            # if self._name:
+            #    (self.path / "app").rename(self._name)
 
     def init_app(self):
         logger = logging.getLogger("uvicorn")
+        YELLOW, CYAN = Fore.YELLOW, Fore.CYAN
 
-        logger.info(f"{Style.BRIGHT}Load config and initialize app...{Style.RESET_ALL}")
+        def fg(text, color=Fore.WHITE):
+            return f"{color}{text}{Fore.RESET}"
+
+        def bold(text, color=Fore.WHITE):
+            return f"{Style.BRIGHT}{color}{text}{Style.RESET_ALL}"
+
+        logger.info(bold("Load config and initialize app..."))
         self._msa = FastMSA(self._name, self.load_config())
-        bullet = f"{Style.BRIGHT}{Fore.GREEN}✔️{Style.RESET_ALL}"
+        bullet = bold("✔️", Fore.GREEN)
 
         logger.info(
-            f"{bullet} init {Fore.CYAN}domain models{Style.RESET_ALL}... %s",
-            f"{Style.BRIGHT}{Fore.YELLOW}{len(self.load_domain())}{Style.RESET_ALL} models loaded.",
+            f"{bullet} init {fg('domain models', CYAN)}... %s",
+            bold(f"{len(self.load_domain())}", YELLOW) + " models loaded.",
         )
 
         logger.info(
-            f"{bullet} init {Fore.CYAN}ORM mappings{Style.RESET_ALL}.... %s",
-            f"{Style.BRIGHT}{Fore.YELLOW}{len(self.load_orm_mappers().tables)}{Style.RESET_ALL} tables mapped.",
+            f"{bullet} init {fg('ORM mappings', CYAN)}.... %s",
+            bold(f"{len(self.load_orm_mappers().tables)}", YELLOW) + " tables mapped.",
         )
 
         logger.info(
-            f"{bullet} init {Fore.CYAN}API endpoints{Style.RESET_ALL}... %s",
-            f"{Style.BRIGHT}{Fore.YELLOW}{len(self.load_routes())}{Style.RESET_ALL} routes installed.",
+            f"{bullet} init {fg('API endpoints', CYAN)}... %s",
+            bold(f"{len(self.load_routes())}", YELLOW) + " routes installed.",
         )
 
         logger.info(
-            f"{bullet} init {Fore.CYAN}database{Style.RESET_ALL}........ %s",
-            f"{Style.BRIGHT}{Fore.YELLOW}{self._msa.config.get_db_url()}{Style.RESET_ALL}",
+            f"{bullet} init {fg('database', CYAN)}........ %s",
+            bold(f"{self._msa.config.get_db_url()}", YELLOW),
         )
         return self._msa
 
@@ -221,10 +236,15 @@ class FastMSACommandParser:
 
         # init subparsers
         for handler in [self._cmd.init, self._cmd.run]:
-            self._subparsers.add_parser(
+            doc = handler.__doc__
+            lines = doc.splitlines()
+            doc = lines[0] + "\n" + dedent("\n".join(lines[1:]))
+            parser = self._subparsers.add_parser(
                 handler.__name__,
-                description=handler.__doc__,
+                description=doc,
+                formatter_class=RawTextHelpFormatter,
             )
+            parser.add_argument("--force", action="store_true")
 
     def parse_args(self, args: Sequence[str]):
         if not args:
@@ -233,9 +253,15 @@ class FastMSACommandParser:
 
         ns = self.parser.parse_args(args)
         try:
-            getattr(self._cmd, ns.command)()
+            if hasattr(self, ns.command):
+                getattr(self, ns.command)(ns)
+            else:
+                getattr(self._cmd, ns.command)()
         except FastMSAError as e:
-            print("FastMSA ERROR:", e.message, file=sys.stderr)
+            print(f"{Fore.RED}{Style.BRIGHT}FastMSA ERROR:", e.message, file=sys.stderr)
+
+    def init(self, ns: Namespace):
+        self._cmd.init(force=ns.force)
 
 
 def console_main():

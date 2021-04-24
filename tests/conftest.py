@@ -77,13 +77,13 @@ def get_uow(get_session: SessionMaker) -> Callable[[], AbstractUnitOfWork[Produc
 
 
 def init_flask_routes(msa: FastMSA, app: Flask):
-    from tests.app.routes import flask
+    from tests.app.routes import flask  # noqa
 
     ...
 
 
 def init_routes(msa: FastMSA, app: FastAPI):
-    from tests.app.routes import fastapi
+    from tests.app.routes import fastapi  # noqa
 
     ...
 
@@ -110,10 +110,7 @@ def server(
 
 
 @pytest.fixture
-def server_fastapi(
-    msa: FastMSA, get_session: SessionMaker
-) -> Generator[FlaskServerThread, None, None]:
-    # noqa
+def server_fastapi(msa: FastMSA, get_session: SessionMaker):
     """:class:`ServerThread` 로 구현된 재시작 가능한 멀티스레드 Flask 서버를
     리턴하는 픽스쳐입니다.
 
@@ -121,8 +118,3 @@ def server_fastapi(
     """
 
     test_app = init_app(msa, init_routes)
-    server.start()
-
-    yield server
-
-    server.shutdown()

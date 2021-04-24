@@ -1,1 +1,1 @@
-from .unit import FakeConfig, FakeRepository, FakeUnitOfWork
+from .unit import FakeConfig, FakeRepository, FakeUnitOfWork  # noqa

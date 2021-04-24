@@ -3,7 +3,10 @@
         "**/__pycache__": true,
         "**/.ipynb_checkpoints": true,
         "**/.mypy_cache": true,
-        "**/.pytest_cache": true
+        "**/.pytest_cache": true,
+        "*.egg-info": true,
+        "build/": true,
+        "dist/": true,
     },
     "python.testing.pytestArgs": [
         "tests"
@@ -13,7 +16,8 @@
     "python.testing.pytestEnabled": true,
     "python.linting.pydocstyleEnabled": true,
     "python.linting.pydocstyleArgs": [
-        "--convention=google"
+        "--convention=google",
+        "--add-ignore=D403",
     ],
     "python.formatting.provider": "black",
     "python.languageServer": "Pylance",

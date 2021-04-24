@@ -1,18 +1,24 @@
 """테스트 유틸리티 함수."""
-from __future__ import annotations
-
 import contextlib
+import importlib
 import io
 import sys
 from collections import defaultdict
 from subprocess import PIPE, Popen
+from typing import Any
+
+try:
+    display = importlib.import_module("IPython.display")
+    SVG = getattr(display, "SVG")
+    ipython_installed = True
+except:
+    ipython_installed = False
+    SVG = lambda x: x
 
 
 @contextlib.contextmanager
 def captured_output():
-    """
-    Return captured output
-    """
+    """Return captured output."""
     new_out, new_err = io.StringIO(), io.StringIO()
     old_out, old_err = sys.stdout, sys.stderr
     try:
@@ -29,8 +35,15 @@ def get_test_counts(path: str = "tests") -> dict[str, int]:
         shell=True,
         stdout=PIPE,
     )
+    if not proc:
+        raise OSError("cannot execute grep for finding test files!")
+
+    stats = defaultdict[str, int](lambda: 0)
+
+    if not proc.stdout:
+        return {}
+
     output = proc.stdout.read().decode().strip()
-    stats = defaultdict(lambda: 0)
     for k, v in (it.split(":") for it in output.split("\n")):
         stats[k.split("/")[1]] += int(v)
     return dict(stats)
@@ -45,7 +58,7 @@ def show_test_pyramid(
     margin_right: int = 0,
     margin_top: int = 10,
     margin_bottom: int = 10,
-) -> SVG:
+) -> Any:
     """테스트 피라미드를 SVG로 출력합니다.
 
     Args:

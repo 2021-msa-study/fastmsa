@@ -18,10 +18,12 @@ from fastmsa.repo import AbstractRepository
 from fastmsa.uow import AbstractUnitOfWork
 
 E = TypeVar("E", bound=Entity)
-A = TypeVar("A", bound=Aggregate[Entity])
+A = TypeVar("A", bound=Aggregate)
 
 
 class FakeConfig(AbstractConfig):
+    """단위 테스트를 위한 Fake 설정."""
+
     def get_db_url(self):
         return "sqlite://"
 
@@ -33,6 +35,8 @@ class FakeConfig(AbstractConfig):
 
 
 class FakeRepository(AbstractRepository[E]):
+    """단위 테스트를 위한 Fake 레포지터리."""
+
     def __init__(self, id_field: str, items: Optional[list[E]] = None):
         self.id_field = id_field
         self._items = set(items) if items else set()
@@ -58,19 +62,26 @@ class FakeRepository(AbstractRepository[E]):
 
 
 class FakeSession(AbstractSession):
+    """단위 테스트를 위한 Fake Session."""
+
     committed = False
 
     def commit(self) -> None:
         self.committed = True
 
 
-class FakeUnitOfWork(AbstractUnitOfWork[Aggregate[E]]):
-    # 생성자 오버로딩이 필요해서 인자값 저장하는 파라미터 추가
+class FakeUnitOfWork(AbstractUnitOfWork[A]):
+    """단위 테스트를 위한 Fake UoW.
+
+    Params:
+        - agg_class: 사용되지는 않지만 타입 추론을 위해 필요 (지우지 말것)
+    """
+
     def __init__(
         self,
-        agg_class: Type[Aggregate[E]],
+        agg_class: Type[A],
         id_field: str,
-        items: Optional[list[Aggregate[E]]] = None,
+        items: Optional[list[A]] = None,
     ) -> None:
         self.repo = FakeRepository(id_field, items)
         self.committed = False
