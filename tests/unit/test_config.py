@@ -2,9 +2,9 @@
 """
 import pytest
 
-from fastmsa.test.unit import FakeConfig
-from fastmsa.core import AbstractConfig
 from fastmsa import FastMSA
+from fastmsa.core import AbstractConfig
+from fastmsa.test.unit import FakeConfig
 
 
 @pytest.fixture

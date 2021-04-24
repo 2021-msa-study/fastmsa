@@ -10,5 +10,6 @@ jinja2
 pytest
 pylint
 mypy
+isort
 pydocstyle
-git+https://github.com/psf/black.git
+black

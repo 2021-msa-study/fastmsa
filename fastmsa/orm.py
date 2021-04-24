@@ -1,25 +1,21 @@
 """ORM 어댑터 모듈"""
 from __future__ import annotations
-from fastmsa.core import AbstractConfig
 
-from typing import Callable, Generator, Optional, Type, Union, Any, cast
-from contextlib import contextmanager, AbstractContextManager
 import abc
 import io
-import re
 import logging
+import re
+from contextlib import AbstractContextManager, contextmanager
+from typing import Any, Callable, Generator, Optional, Type, Union, cast
 
-from sqlalchemy import (
-    MetaData,
-    create_engine,
-)
-from sqlalchemy.pool import Pool
+from sqlalchemy import MetaData, create_engine
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import (
-    sessionmaker,
-    clear_mappers as _clear_mappers,
-)
+from sqlalchemy.orm import clear_mappers as _clear_mappers
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
+from sqlalchemy.pool import Pool
+
+from fastmsa.core import AbstractConfig
 
 SessionMaker = Callable[[], Session]
 """Session 팩토리 타입."""
@@ -75,9 +71,9 @@ def init_db(
 
     engine = init_engine(
         metadata,
-        db_url or (config and config.get_db_url()),
-        connect_args=config.get_db_connect_args(),
-        poolclass=config.get_db_poolclass(),
+        db_url if db_url else (config.get_db_url() if config else "sqlite://"),
+        connect_args=config.get_db_connect_args() if config else None,
+        poolclass=config.get_db_poolclass() if config else None,
         drop_all=drop_all,
         show_log=show_log,
         # isolation_level="REPEATABLE READ",

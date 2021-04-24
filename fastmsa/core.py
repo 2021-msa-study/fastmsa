@@ -1,12 +1,10 @@
 from __future__ import annotations
 
+import abc
 from typing import Any, Callable, Optional, Type
 
 import uvicorn
-
-import abc
-
-from sqlalchemy.pool import StaticPool, Pool
+from sqlalchemy.pool import Pool, StaticPool
 from sqlalchemy.sql.schema import MetaData
 
 

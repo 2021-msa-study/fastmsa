@@ -1,27 +1,25 @@
 # pylint: disable=redefined-outer-name, protected-access
 """pytest 에서 사용될 전역 Fixture들을 정의합니다."""
 from __future__ import annotations
-from typing import Optional, Callable, Generator, Tuple
+
+from typing import Callable, Generator, Optional, Tuple
+
+import pytest
 from fastapi.applications import FastAPI
 from flask.app import Flask
-
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
-import pytest
 
-from fastmsa.repo import SqlAlchemyRepository
-from fastmsa.orm import clear_mappers, start_mappers, SessionMaker
-from fastmsa.uow import AbstractUnitOfWork, SqlAlchemyUnitOfWork
-from fastmsa.flask import init_app as init_flask_app
-from fastmsa.api import init_app
-from fastmsa.test.e2e import FlaskServerThread
 from fastmsa import FastMSA
-
-from tests.app.domain.aggregates import Product
+from fastmsa.api import init_app
+from fastmsa.flask import init_app as init_flask_app
+from fastmsa.orm import SessionMaker, clear_mappers, start_mappers
+from fastmsa.repo import SqlAlchemyRepository
+from fastmsa.test.e2e import FlaskServerThread
+from fastmsa.uow import AbstractUnitOfWork, SqlAlchemyUnitOfWork
 from tests.app.adapters.orm import init_mappers
-
+from tests.app.domain.aggregates import Product
 
 # types
 

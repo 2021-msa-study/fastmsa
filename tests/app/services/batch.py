@@ -1,11 +1,10 @@
 """Batch 서비스."""
-from typing import Sequence, Optional, cast
 from datetime import date
+from typing import Optional, Sequence
 
 from fastmsa.uow import AbstractUnitOfWork
-
-from tests.app.domain.models import Batch, OrderLine
 from tests.app.domain.aggregates import Product
+from tests.app.domain.models import Batch, OrderLine
 
 
 class InvalidSku(Exception):

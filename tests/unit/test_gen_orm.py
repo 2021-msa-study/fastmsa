@@ -4,8 +4,8 @@ from inspect import getmembers
 from types import CodeType
 from typing import Optional
 
-import pytest
 import jinja2
+import pytest
 
 
 class Batch:

@@ -1,9 +1,10 @@
 """도메인 모델."""
 
 from __future__ import annotations
-from typing import Optional
+
 from dataclasses import dataclass
 from datetime import date
+from typing import Optional
 
 
 class OutOfStock(Exception):

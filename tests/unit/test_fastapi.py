@@ -1,9 +1,7 @@
 """FastMSA의 API Test 기능을 테스트합니다.
 """
-from typing import cast
-from fastapi import routing
-
 import pytest
+from fastapi import routing
 
 from fastmsa import FastMSA
 from fastmsa.test.api import TestClient

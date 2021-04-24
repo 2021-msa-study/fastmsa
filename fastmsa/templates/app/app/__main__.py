@@ -1,6 +1,5 @@
-from fastmsa.command import FastMSACommand
 from fastmsa.api import app
-
+from fastmsa.command import FastMSACommand
 
 cmd = FastMSACommand()
 msa = cmd.init_app()

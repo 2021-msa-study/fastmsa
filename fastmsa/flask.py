@@ -1,11 +1,12 @@
 """Flask 로 구현한 RESTful 서비스 앱."""
 from __future__ import annotations
-from fastmsa.core import FastMSA
-from typing import Callable, Any, Optional, cast
 
-from fastmsa.orm import SessionMaker, init_db
+from typing import Any, Callable, Optional, cast
 
 from flask import Flask
+
+from fastmsa.core import FastMSA
+from fastmsa.orm import SessionMaker, init_db
 
 # types
 _AnyFunc = Callable[..., Any]

@@ -1,12 +1,13 @@
-from contextlib import contextmanager
-
-from pathlib import Path
 import os
-from pkg_resources import resource_listdir, resource_isdir
+from contextlib import contextmanager
+from pathlib import Path
+from typing import Generator
+
+from pkg_resources import resource_isdir, resource_listdir
 
 
 @contextmanager
-def cwd(path: Path):
+def cwd(path: Path) -> Generator:
     """Helper to guarantee work in the path only during the context.
 
     Restore previous working directory when exit the context block.

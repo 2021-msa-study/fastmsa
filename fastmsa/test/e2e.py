@@ -1,13 +1,13 @@
 """E2E 테스트 모듈입니다."""
-import threading
 import contextlib
+import threading
 import time
 
+import uvicorn
 from fastapi import FastAPI
+from flask import Flask
 from uvicorn.config import Config
 from werkzeug.serving import make_server
-from flask import Flask
-import uvicorn
 
 from fastmsa.core import FastMSA
 

@@ -1,18 +1,16 @@
 from __future__ import annotations
 
-from typing import Optional, Any, cast
 from datetime import date
+from typing import Any, Optional
 
 import pytest
 
+from fastmsa.orm import Session, SessionMaker
 from fastmsa.uow import SqlAlchemyUnitOfWork
-from fastmsa.orm import SessionMaker, Session
-
+from tests import random_batchref, random_sku
 from tests.app.domain.aggregates import Product
 from tests.app.domain.models import OrderLine
-
 from tests.integration import insert_product
-from tests import random_batchref, random_sku
 
 
 def insert_batch(

@@ -1,12 +1,12 @@
 """API 테스트."""
 from __future__ import annotations
+
 from typing import Callable, Optional
 
 import pytest
 import requests
 
 from fastmsa import FastMSA
-
 from tests import random_batchref, random_orderid, random_sku
 
 AddStockFunc = Callable[[list[tuple[str, str, int, Optional[str]]]], None]

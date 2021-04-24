@@ -19,20 +19,19 @@ testapp $ msa mapper MyClothing
   created: adapters/orm/MyClothing.py
 
 """
-from pathlib import Path
-from textwrap import dedent
-from threading import Lock
-from types import ModuleType
 import os
+import shutil
 import sys
 import tempfile
-import shutil
-from _pytest.python import Module
+from pathlib import Path
+from textwrap import dedent
+from types import ModuleType
 
 import pytest
+from _pytest.python import Module
 
 from fastmsa.command import FastMSACommand, FastMSAInitError
-from fastmsa.utils import scan_resource_dir, cwd
+from fastmsa.utils import cwd, scan_resource_dir
 
 
 @pytest.fixture
@@ -107,7 +106,7 @@ def test_msa_init(msa: FastMSACommand):
     src_dir_files = os.listdir(msa.path / msa.name)
     test_dir_files = os.listdir(msa.path / "tests")
 
-    assert 7 == len(root_files)
+    assert 8 == len(root_files)
     assert 6 == len(src_dir_files)
     assert 5 == len(test_dir_files)
 

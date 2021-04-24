@@ -1,6 +1,7 @@
 # noqa
 """Batch 도메인 모델 테스트."""
 from datetime import date
+
 from tests.app.domain.models import Batch, OrderLine
 
 today = date.today()

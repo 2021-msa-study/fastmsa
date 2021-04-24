@@ -1,10 +1,11 @@
 """테스트 유틸리티 함수."""
 from __future__ import annotations
-from subprocess import Popen, PIPE
-from collections import defaultdict
+
+import contextlib
 import io
 import sys
-import contextlib
+from collections import defaultdict
+from subprocess import PIPE, Popen
 
 
 @contextlib.contextmanager

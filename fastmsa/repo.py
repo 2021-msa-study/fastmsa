@@ -1,15 +1,16 @@
 """레포지터리 패턴 구현."""
 from __future__ import annotations
-from typing import List, Optional, Type, Literal, Generic, TypeVar, Any, cast
-from contextlib import ContextDecorator
+
 import abc
+from contextlib import ContextDecorator
+from typing import Any, Generic, List, Literal, Optional, Type, TypeVar
 
 from sqlalchemy.orm import Session
 
-from fastmsa.domain import Aggregate
+from fastmsa.domain import Aggregate, Entity
 from fastmsa.orm import get_sessionmaker
 
-T = TypeVar("T", bound=Aggregate)
+T = TypeVar("T", bound=Aggregate[Entity])
 
 
 class AbstractRepository(Generic[T], abc.ABC, ContextDecorator):
@@ -27,7 +28,7 @@ class AbstractRepository(Generic[T], abc.ABC, ContextDecorator):
         self.close()
         return False
 
-    def close(self) -> None:  # pylint: disable=no-self-use
+    def close(self) -> None:
         """레포지터리와 연결된 저장소 객체를 종료합니다."""
         return
 
@@ -37,7 +38,7 @@ class AbstractRepository(Generic[T], abc.ABC, ContextDecorator):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get(self, reference: str = "", **kwargs: str) -> Optional[T]:
+    def get(self, id: str = "", **kwargs: str) -> Optional[T]:
         """주어진 레퍼런스 문자열에 해당하는 :class:`T` 객체를 조회합니다.
 
         해당하는 배치를 못 찾을 경우 ``None`` 을 리턴합니다.
@@ -66,12 +67,13 @@ class SqlAlchemyRepository(AbstractRepository[T]):
     def __init__(self, entity_class: Type[T], session: Session = None):
         """임의의 Aggregate T 를 받아 T에대한 Repostiory를 초기화합니다."""
         self.entity_class = entity_class
+        self.session: Session
         if not session:
             self.session = get_sessionmaker()()
         else:
             self.session = session
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"SqlAlchemyRepository[{self.entity_class}]"
 
     def __enter__(self) -> SqlAlchemyRepository[T]:
@@ -84,9 +86,9 @@ class SqlAlchemyRepository(AbstractRepository[T]):
     def add(self, item: T) -> None:
         self.session.add(item)
 
-    def get(self, reference: str = "", **kwargs: str) -> Optional[T]:
-        if reference:
-            return self.session.query(self.entity_class).get(reference)
+    def get(self, id: str = "", **kwargs: str) -> Optional[T]:
+        if id:
+            return self.session.query(self.entity_class).get(id)
 
         filter_by = {k: v for k, v in kwargs.items() if v is not None}
         return self.session.query(self.entity_class).filter_by(**filter_by).first()

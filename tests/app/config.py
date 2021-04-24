@@ -1,6 +1,8 @@
 """App Configurations."""
 from __future__ import annotations
+
 import os
+
 from fastmsa.core import AbstractConfig
 
 

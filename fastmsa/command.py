@@ -3,21 +3,21 @@
 Test
 """
 from __future__ import annotations
-import os
-from typing import Optional, Sequence, cast
-from types import ModuleType
-from pathlib import Path
-from pkg_resources import resource_string
-from argparse import ArgumentParser, Namespace
-from inspect import getmembers
-import sys
+
 import glob
 import importlib
+import os
+import sys
+from argparse import ArgumentParser
+from inspect import getmembers
+from pathlib import Path
+from typing import Sequence, cast
 
 import jinja2
+import uvicorn
+from pkg_resources import resource_string
 from sqlalchemy.sql.schema import MetaData
 from starlette.routing import BaseRoute
-import uvicorn
 
 from fastmsa.core import AbstractConfig, FastMSA, FastMSAError
 from fastmsa.utils import cwd, scan_resource_dir
@@ -44,15 +44,15 @@ class FastMSACommand:
         else:
             self._name = self.path.name
 
-    @property
-    def name(self) -> str:
-        return self._name
-
     def assert_valid_name(self, name: str):
         assert name.isidentifier()
 
+    @property
+    def name(self):
+        return self._name
+
     @name.setter
-    def set_name(self, value: str):
+    def name(self, value: str):
         """프로젝트 이름을 설정합니다.
 
         프로젝트 이름은 반드시 알파벳으로 시작해야 합니다.

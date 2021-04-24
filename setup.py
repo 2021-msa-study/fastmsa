@@ -1,7 +1,7 @@
-from setuptools import setup
-from os import path
 import os
-import sys
+from os import path
+
+from setuptools import setup
 
 this_dir = path.abspath(path.dirname(__file__))
 with open(path.join(this_dir, "README.md")) as f:

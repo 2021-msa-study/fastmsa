@@ -4,7 +4,6 @@
 """
 from fastmsa import FastMSA
 from fastmsa.flask import init_app
-
 from tests.app.config import Config
 
 msa = FastMSA(__name__, Config())

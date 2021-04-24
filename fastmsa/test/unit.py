@@ -9,13 +9,13 @@
 
 Low Gear(고속 기어) 테스트입니다.
 """
+from typing import Optional, Type, TypeVar, cast
+
 from fastmsa.core import AbstractConfig
 from fastmsa.domain import Aggregate
-from typing import Sequence, Optional, Type, TypeVar
-
-from fastmsa.uow import AbstractUnitOfWork
-from fastmsa.repo import AbstractRepository
 from fastmsa.orm import AbstractSession
+from fastmsa.repo import AbstractRepository
+from fastmsa.uow import AbstractUnitOfWork
 
 T = TypeVar("T", bound=Aggregate)
 
@@ -43,7 +43,8 @@ class FakeRepository(AbstractRepository[T]):
         self._items.add(item)
 
     def get(self, id: str = "", **kwargs: str) -> Optional[T]:
-        return next((p for p in self._items if getattr(p, self.id_field) == id), None)
+        item = next((p for p in self._items if getattr(p, self.id_field) == id), None)
+        return cast(Optional[T], item)
 
     def delete(self, batch: T) -> None:
         self._items.remove(batch)

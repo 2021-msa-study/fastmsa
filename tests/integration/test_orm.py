@@ -1,7 +1,8 @@
 from datetime import date
 
-from tests.app.domain import models
 from sqlalchemy.orm import Session
+
+from tests.app.domain import models
 
 
 def test_orderline_mapper_can_load_lines(session: Session) -> None:

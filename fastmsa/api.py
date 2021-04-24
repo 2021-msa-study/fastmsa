@@ -1,15 +1,14 @@
 """FastAPI 로 구현한 RESTful 서비스 앱."""
-from __future__ import annotations
-
+from typing import Any, Callable, Optional
 
 from fastapi import FastAPI
-from fastmsa.core import FastMSA
-from typing import Callable, Any, cast
-
 from pydantic import BaseModel
 
+from fastmsa.core import FastMSA
+from fastmsa.orm import SessionMaker
+
 # globals
-app = FastAPI(title=__name__)  # pylint: disable=invalid-name
+app = FastAPI(title=__name__)  # pylint:
 
 
 def init_app(
@@ -24,8 +23,8 @@ def init_app(
     if init_hook:
         init_hook(msa, app)
 
-    global get_session  # pylint: disable=global-statement, invalid-name
-    get_session = msa.init_db()
+    msa.init_db()
+
     return app
 
 

@@ -1,7 +1,6 @@
 from __future__ import annotations
-from fastmsa.domain import Aggregate
 
-from typing import Type
+from fastmsa.domain import Aggregate
 from tests.app.domain.models import Batch, OrderLine, OutOfStock
 
 

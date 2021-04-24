@@ -1,6 +1,6 @@
-from fastmsa.test import FakeConfig
 from fastmsa import FastMSA
 from fastmsa.api import get
+from fastmsa.test import FakeConfig
 
 config = FakeConfig()
 msa = FastMSA(__name__, config)

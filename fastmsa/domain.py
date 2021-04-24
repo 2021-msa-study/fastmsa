@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Generic, Type, TypeVar, Protocol
+from typing import Any, Generic, Protocol, Type, TypeVar
 
 
 class Entity(Protocol):
@@ -10,10 +10,12 @@ class Entity(Protocol):
 
 
 T = TypeVar("T", bound=Entity)
+S = TypeVar("S")
 
 
 class Aggregate(Generic[T]):
     items: list[T]
+    type: Type[T]
 
     class Meta:
         entity_class: Type
