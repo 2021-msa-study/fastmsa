@@ -2,7 +2,7 @@
 from typing import cast
 from fastmsa.api import get, post
 from fastmsa.repo import SqlAlchemyRepository
-from fastmsa.schema import schema_from, BaseModel
+from fastmsa.schema import schema_from, BaseModel, Field
 
 from ..domain.models import User
 
@@ -14,7 +14,7 @@ class UserReadSchema:  # noqa
 
 @schema_from(User)
 class UserCreateSchema:  # noqa
-    ...
+    id: str = Field(..., description="사용자 ID22")
 
 
 @post("/users")

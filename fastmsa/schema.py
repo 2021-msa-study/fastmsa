@@ -1,9 +1,14 @@
 """스키마 변환, 검증 조작등의 기능을 담당하는 모듈입니다."""
 import collections
-from typing import Any, NamedTuple, Type, cast, Callable, Optional, TypeVar, Union
+from typing import Any, Type, cast, Callable, Optional, TypeVar, Union
+from inspect import getmembers
+from pprint import pprint
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field  # noqa
+from pydantic.fields import FieldInfo, ModelField  # noqa
 from pydantic.main import ModelMetaclass
+
+from dataclasses import Field as DataClassField
 
 
 AnyType = Type[Any]
@@ -26,8 +31,21 @@ def schema_from(
             defaults=[orm_mode],
         )
 
+    members = dict[str, Any]()
+    dataclass_fields = getattr(DataClass, "__dataclass_fields__", {})
+    for name, field in dataclass_fields.items():
+        members[name] = field
+
     def _wrapper(TargetClass: Type[T]):
-        def _get_model(DataClass: Type[D], excludes=[]) -> AnyType:
+        # 타겟 클래스의 필드 속성을 가져옵니다.
+        for name, field in getmembers(TargetClass):
+            if name.startswith("_"):
+                continue
+            if not isinstance(field, (FieldInfo,)):
+                continue
+            members[name] = field
+
+        def _get_model(DataClass: Type[D], excludes=[]) -> Type[Union[BaseModel, D, T]]:
             from dataclasses import is_dataclass
 
             annotations = dict(
@@ -46,13 +64,23 @@ def schema_from(
                 "__module__": TargetClass.__module__,
                 "__qualname__": TargetClass.__qualname__,
             }
-            return cast(
+
+            model = cast(
                 AnyType,
                 ModelMetaclass(TargetClass.__name__, (ModelSchema,), namespace),
             )
 
-        model = _get_model(DataClass, excludes=excludes)
-        model.Config.orm_mode = orm_mode
-        return model
+            for field_name, field_type in annotations.items():
+                member = members.get(field_name)
+                field = model.__dict__["__fields__"].get(field_name)
+                if not field:
+                    continue
+                if isinstance(member, (DataClassField,)):
+                    field.field_info = Field(..., **member.metadata)
+                elif isinstance(member, (FieldInfo,)):
+                    field.field_info = member
+            return model
+
+        return _get_model(DataClass, excludes=excludes)
 
     return _wrapper
