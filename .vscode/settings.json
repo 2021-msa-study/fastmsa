@@ -5,9 +5,13 @@
         "**/.mypy_cache": true,
         "**/.pytest_cache": true,
         "*.egg-info": true,
-        "build/": true,
-        "dist/": true,
+        "**/build": true,
+        "**/dist": true,
     },
+    "python.workspaceSymbols.exclusionPatterns": [
+        "build/**",
+        "dist/**",
+    ],
     "python.testing.pytestArgs": [
         "tests"
     ],

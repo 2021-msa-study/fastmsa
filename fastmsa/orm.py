@@ -15,7 +15,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
 from sqlalchemy.pool import Pool
 
-from fastmsa.core import AbstractConfig
+from fastmsa.core import FastMSA
 
 SessionMaker = Callable[[], Session]
 """Session 팩토리 타입."""
@@ -59,7 +59,7 @@ def init_db(
     drop_all: bool = False,
     show_log: bool = False,
     init_hooks: list[Callable[[MetaData], Any]] = None,
-    config: AbstractConfig = None,
+    config: FastMSA = None,
 ) -> SessionMaker:
     """DB 엔진을 초기화 합니다."""
     global _get_session

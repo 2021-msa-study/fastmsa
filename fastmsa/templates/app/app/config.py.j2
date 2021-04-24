@@ -11,7 +11,7 @@ class Config(FastMSA):
     설정 가능한 모든 항목들은 `FastMSA` 클래스 정의를 참고하세요.
     """
 
-    title = "Test APP"
+    title = {{msa.name.capitalize()}}
 
     def get_db_url(self) -> str:
         """Get API server's db uri.

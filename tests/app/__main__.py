@@ -1,11 +1,8 @@
-"""App 실행용 모듈.
+from fastmsa.api import app  # noqa
+from fastmsa.command import FastMSACommand
 
-`python -m app` 과 같은 명령으로 실행하기 위한 메인 모듈입니다.
-"""
-from fastmsa import FastMSA
-from fastmsa.flask import init_app
-from tests.app.config import Config
+cmd = FastMSACommand()
+msa = cmd.init_app()
 
-msa = FastMSA(__name__, Config())
-app = init_app(msa)
-app.run(use_reloader=True)
+if __name__ == "__main__":
+    cmd.run()

@@ -11,7 +11,7 @@ Low Gear(고속 기어) 테스트입니다.
 """
 from typing import Optional, Type, TypeVar
 
-from fastmsa.core import AbstractConfig
+from fastmsa.core import FastMSA
 from fastmsa.domain import Aggregate, Entity
 from fastmsa.orm import AbstractSession
 from fastmsa.repo import AbstractRepository
@@ -21,7 +21,7 @@ E = TypeVar("E", bound=Entity)
 A = TypeVar("A", bound=Aggregate)
 
 
-class FakeConfig(AbstractConfig):
+class FakeConfig(FastMSA):
     """단위 테스트를 위한 Fake 설정."""
 
     def get_db_url(self):

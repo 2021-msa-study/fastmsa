@@ -8,8 +8,16 @@ from sqlalchemy.pool import Pool, StaticPool
 from sqlalchemy.sql.schema import MetaData
 
 
-class AbstractConfig(abc.ABC):
-    """App Configurations."""
+class FastMSA:
+    """FastMSA App 설정."""
+
+    title: str
+
+    def __init__(self, name: str, title: Optional[str] = None):
+        self.name = name
+
+        if title:
+            self.title = title
 
     def get_api_host(self) -> str:
         """Get API server's host address."""
@@ -23,7 +31,6 @@ class AbstractConfig(abc.ABC):
         """Get API server's full url."""
         return f"http://{self.get_api_host()}:{self.get_api_port()}"
 
-    @abc.abstractmethod
     def get_db_url(self) -> str:
         """Get API server's db uri.
 
@@ -60,46 +67,14 @@ class AbstractConfig(abc.ABC):
         """
         return StaticPool
 
+    def init_fastapi(self):
+        """FastMSA 설정을 FastAPI 앱에 적용합니다."""
+        from fastmsa.api import app
 
-DEFAULT_APP: Optional[FastMSA] = None
-
-
-class FastMSA:
-    def __init__(self, name: str, config: AbstractConfig):
-        global DEFAULT_APP
-
-        self.name = name
-        self._config = config
-
-        if not DEFAULT_APP:
-            DEFAULT_APP = self
-
-    @property
-    def app(self):
-        from .api import app
-
-        return app
+        app.title = self.title
 
     def run(self, reload=False):
         uvicorn.run(f"fastmsa.api:app", reload=reload)
-
-    @property
-    def config(self) -> AbstractConfig:
-        return self._config
-
-    def init_db(
-        self, drop_all=False, init_hooks: list[Callable[[MetaData], Any]] = None
-    ):
-        from fastmsa import orm
-
-        return orm.init_db(drop_all=drop_all, init_hooks=init_hooks, config=self.config)
-
-
-def get_config() -> AbstractConfig:
-    if DEFAULT_APP:
-        return DEFAULT_APP.config
-
-    raise ValueError("초기화된 FastMSA 앱이 없습니다.")
 
 
 class FastMSAError(Exception):
