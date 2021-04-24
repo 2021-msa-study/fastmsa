@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import glob
 import importlib
+import logging
 import os
 import sys
 from argparse import ArgumentParser
@@ -18,6 +19,7 @@ import uvicorn
 from pkg_resources import resource_string
 from sqlalchemy.sql.schema import MetaData
 from starlette.routing import BaseRoute
+from colorama import Fore, Back, Style
 
 from fastmsa.core import AbstractConfig, FastMSA, FastMSAError
 from fastmsa.utils import cwd, scan_resource_dir
@@ -106,31 +108,44 @@ class FastMSACommand:
                 (self.path / "app").rename(self._name)
 
     def init_app(self):
-        print("- load config.")
+        logger = logging.getLogger("uvicorn")
+
+        logger.info(f"{Style.BRIGHT}Load config and initialize app...{Style.RESET_ALL}")
         self._msa = FastMSA(self._name, self.load_config())
+        bullet = f"{Style.BRIGHT}{Fore.GREEN}✔️{Style.RESET_ALL}"
 
-        print("- init domain models...", end=" ")
-        domains = self.load_domain()
-        print(f"{len(domains)} models loaded.")
+        logger.info(
+            f"{bullet} init {Fore.CYAN}domain models{Style.RESET_ALL}... %s",
+            f"{Style.BRIGHT}{Fore.YELLOW}{len(self.load_domain())}{Style.RESET_ALL} models loaded.",
+        )
 
-        print("- init orm mappings....", end=" ")
-        meta = self.load_orm_mappers()
-        print(f"{len(meta.tables)} tables mapped.")
+        logger.info(
+            f"{bullet} init {Fore.CYAN}ORM mappings{Style.RESET_ALL}.... %s",
+            f"{Style.BRIGHT}{Fore.YELLOW}{len(self.load_orm_mappers().tables)}{Style.RESET_ALL} tables mapped.",
+        )
 
-        print("- init api endpoints...", end=" ")
-        routes = self.load_routes()
-        print(f"{len(routes)} routes installed.")
+        logger.info(
+            f"{bullet} init {Fore.CYAN}API endpoints{Style.RESET_ALL}... %s",
+            f"{Style.BRIGHT}{Fore.YELLOW}{len(self.load_routes())}{Style.RESET_ALL} routes installed.",
+        )
 
-        print("- init database       :", self._msa.config.get_db_url())
-        print("--------------------------------------------------")
+        logger.info(
+            f"{bullet} init {Fore.CYAN}database{Style.RESET_ALL}........ %s",
+            f"{Style.BRIGHT}{Fore.YELLOW}{self._msa.config.get_db_url()}{Style.RESET_ALL}",
+        )
         return self._msa
 
     def run(self, dry_run=False, reload=True, banner=True, **kwargs):
         """FastMSA 애플리케이션을 실행합니다."""
+        term_width = os.get_terminal_size().columns
+        banner_width = min(75, term_width)
         if banner:
-            print("--------------------------------------------------")
-            print("FastMSA:", self.name)
-            print("--------------------------------------------------")
+            print("─" * banner_width)
+            print(
+                f"🚀 {Fore.CYAN}{Style.BRIGHT}Launching FastMSA:",
+                f"{Fore.WHITE}{Style.BRIGHT}{self.name}{Style.RESET_ALL}",
+            )
+            print("─" * banner_width)
 
         if not dry_run:
             sys.path.insert(0, str(self.path))
