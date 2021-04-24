@@ -14,10 +14,7 @@ class Config(FastMSA):
     title = "Test APP"
 
     def get_db_url(self) -> str:
-        """Get API server's db uri.
-
-        The url format should conform the SQLAlchemy's url scheme.
-        """
+        """DB 접속 정보."""
         db_host = os.environ.get("DB_HOST", "localhost")
         db_user = os.environ.get("DB_USER", "postgres")
         db_pass = os.environ.get("DB_PASS", "test")
