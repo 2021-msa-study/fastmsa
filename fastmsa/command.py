@@ -5,11 +5,11 @@ import logging
 import os
 import sys
 from argparse import ArgumentParser, Namespace, RawTextHelpFormatter
+from configparser import ConfigParser
 from inspect import getmembers
 from pathlib import Path
 from textwrap import dedent
-from typing import Any, Sequence, Optional, Type, cast
-from configparser import ConfigParser
+from typing import Any, Optional, Sequence
 
 import jinja2
 import uvicorn
@@ -18,9 +18,9 @@ from pkg_resources import resource_string
 from sqlalchemy.sql.schema import MetaData
 from starlette.routing import BaseRoute
 
-from fastmsa.core import FastMSA, FastMSA, FastMSAError
-from fastmsa.utils import cwd, scan_resource_dir
 import fastmsa.core
+from fastmsa.core import FastMSA, FastMSAError
+from fastmsa.utils import cwd, scan_resource_dir
 
 YELLOW, CYAN, RED = Fore.YELLOW, Fore.CYAN, Fore.RED
 

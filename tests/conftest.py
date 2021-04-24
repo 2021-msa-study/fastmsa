@@ -14,7 +14,7 @@ from sqlalchemy.pool import StaticPool
 from fastmsa import FastMSA
 from fastmsa.api import init_app
 from fastmsa.flask import init_app as init_flask_app
-from fastmsa.orm import SessionMaker, clear_mappers, start_mappers, init_db
+from fastmsa.orm import SessionMaker, clear_mappers, init_db, start_mappers
 from fastmsa.repo import SqlAlchemyRepository
 from fastmsa.test.e2e import FlaskServerThread
 from fastmsa.uow import AbstractUnitOfWork, SqlAlchemyUnitOfWork

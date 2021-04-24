@@ -1,13 +1,12 @@
 from __future__ import annotations
 
+import importlib
+import sys
 from pathlib import Path
 from typing import Any, Optional, Type, cast
-import sys
-import importlib
 
 import uvicorn
 from sqlalchemy.pool import Pool, StaticPool
-from sqlalchemy.sql.schema import MetaData
 
 
 class FastMSA:

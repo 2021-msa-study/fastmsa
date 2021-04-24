@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from fastmsa.api import delete, post
 from fastmsa.uow import SqlAlchemyUnitOfWork
-
 from tests.app import services
 from tests.app.domain.aggregates import Product
 from tests.app.domain.models import Batch, OrderLine
