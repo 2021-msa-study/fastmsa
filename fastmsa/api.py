@@ -2,7 +2,6 @@
 from typing import Any, Callable
 
 from fastapi import FastAPI
-from pydantic import BaseModel  # noqa
 
 from fastmsa.core import FastMSA
 

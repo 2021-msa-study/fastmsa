@@ -4,7 +4,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
-from fastmsa.api import BaseModel, delete, post
+from fastmsa.api import delete, post
+from fastmsa.schema import BaseModel
 from fastmsa.uow import SqlAlchemyUnitOfWork
 from tests.app import services
 from tests.app.domain.aggregates import Product

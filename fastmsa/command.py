@@ -152,6 +152,7 @@ class FastMSACommand:
             f"{bullet} init {fg('database', CYAN)}........ %s",
             bold(f"{self._msa.config.get_db_url()}", YELLOW),
         )
+        self._msa.app.title = self._msa.name
         return self._msa
 
     def run(self, dry_run=False, reload=True, banner=True, **kwargs):
