@@ -1,24 +1,13 @@
 """ORM 어댑터 모듈"""
 from __future__ import annotations
 
-from sqlalchemy import (
-    MetaData,
-    Table,
-    Column,
-    ForeignKey,
-    Integer,
-    String,
-    Date,
-)
+from sqlalchemy import Column, Date, ForeignKey, Integer, MetaData, String, Table
+from sqlalchemy.orm import mapper, relationship
 
-from sqlalchemy.orm import (
-    mapper,
-    relationship,
-)
+from fastmsa.orm import metadata
 
 from {{msa.name}}.domain.aggregates import Product
 from {{msa.name}}.domain.models import Item, User
-from fastmsa.orm import metadata
 
 # Domain 매핑
 user = Table(
