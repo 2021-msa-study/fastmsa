@@ -22,7 +22,6 @@ from starlette.routing import BaseRoute
 from fastmsa.core import AbstractConfig, FastMSA, FastMSAError
 from fastmsa.utils import cwd, scan_resource_dir
 
-
 YELLOW, CYAN, RED = Fore.YELLOW, Fore.CYAN, Fore.RED
 
 

@@ -1,15 +1,12 @@
 """스키마 변환, 검증 조작등의 기능을 담당하는 모듈입니다."""
 import collections
-from typing import Any, Type, cast, Callable, Optional, TypeVar, Union
+from dataclasses import Field as DataClassField
 from inspect import getmembers
-from pprint import pprint
+from typing import Any, Callable, Optional, Type, TypeVar, Union, cast
 
 from pydantic import BaseModel, Field  # noqa
-from pydantic.fields import FieldInfo, ModelField  # noqa
+from pydantic.fields import FieldInfo  # noqa
 from pydantic.main import ModelMetaclass
-
-from dataclasses import Field as DataClassField
-
 
 AnyType = Type[Any]
 
@@ -21,7 +18,7 @@ def schema_from(
     DataClass: Type[D],
     excludes: Optional[list[str]] = None,
     orm_mode=False,
-) -> Callable[[Type[T]], Type[Union[BaseModel, D, T]]]:
+) -> Callable[[Type[T]], Type[Union[BaseModel, Type[D], Type[T]]]]:
     """`dataclasses.dataclass` 모델을 Pydantic `BaseModel` 로 변환합니다."""
 
     class ModelSchema(BaseModel):
@@ -45,7 +42,9 @@ def schema_from(
                 continue
             members[name] = field
 
-        def _get_model(DataClass: Type[D], excludes=[]) -> Type[Union[BaseModel, D, T]]:
+        def _get_model(
+            DataClass: Type[D], excludes=[]
+        ) -> Type[Union[BaseModel, Type[D], Type[T]]]:
             from dataclasses import is_dataclass
 
             annotations = dict(
@@ -76,9 +75,9 @@ def schema_from(
                 if not field:
                     continue
                 if isinstance(member, (DataClassField,)):
-                    field.field_info = Field(..., **member.metadata)
+                    setattr(field, "field_info", Field(..., **member.metadata))
                 elif isinstance(member, (FieldInfo,)):
-                    field.field_info = member
+                    setattr(field, "field_info", member)
             return model
 
         return _get_model(DataClass, excludes=excludes)
