@@ -10,7 +10,7 @@ from argparse import ArgumentParser, Namespace, RawTextHelpFormatter
 from inspect import getmembers
 from pathlib import Path
 from textwrap import dedent
-from typing import Sequence, cast
+from typing import Any, Sequence, cast
 
 import jinja2
 import uvicorn
@@ -227,7 +227,10 @@ class FastMSACommand:
             module = importlib.import_module(module_name)
             modules.append(module)
 
-        return app.routes
+        routes: list[Any] = app.routes
+        return [
+            r for r in routes if r.endpoint.__module__.startswith(self.name + ".routes")
+        ]
 
 
 class FastMSACommandParser:
