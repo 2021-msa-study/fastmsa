@@ -203,16 +203,18 @@ class FastMSACommand:
             uvicorn.run(app_name, reload=reload)
 
     def load_config(self, name, module_name: Optional[str] = None) -> FastMSA:
-        # `name` 정보를 이용해  `config.py` 를 로드한다.
-        assert (self.path / name / "config.py").exists()
-        module_name = module_name or name
+        """`name` 정보를 이용해  `config.py` 를 로드한다."""
+        if (self.path / name / "config.py").exists():
+            module_name = module_name or name
 
-        if self.path not in sys.path:
-            sys.path.insert(0, str(self.path))
+            if self.path not in sys.path:
+                sys.path.insert(0, str(self.path))
 
-        conf_module = importlib.import_module(f"{module_name}.config")
-        config = cast(Type[FastMSA], getattr(conf_module, "Config"))
-        return config(name)
+            conf_module = importlib.import_module(f"{module_name}.config")
+            config = cast(Type[FastMSA], getattr(conf_module, "Config"))
+            return config(name)
+
+        return FastMSA(name)
 
     def load_domain(self) -> list[type]:
         """도메인 클래스를 로드합니다.
