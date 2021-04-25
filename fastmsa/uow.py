@@ -17,10 +17,10 @@ from typing import Any, Generic, Optional, Type, TypeVar
 
 from sqlalchemy.orm import Session
 
+from fastmsa import msgbus
 from fastmsa.domain import Aggregate, Entity
 from fastmsa.orm import SessionMaker, get_sessionmaker
 from fastmsa.repo import AbstractRepository, SqlAlchemyRepository
-from fastmsa import msgbus
 
 E = TypeVar("E", bound=Entity)
 A = TypeVar("A", bound=Aggregate)

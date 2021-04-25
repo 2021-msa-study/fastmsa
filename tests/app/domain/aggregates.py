@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from fastmsa.domain import Aggregate, Event
+from fastmsa.domain import Aggregate
 from tests.app.domain import events
 from tests.app.domain.models import Batch, OrderLine
 

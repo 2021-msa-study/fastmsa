@@ -7,8 +7,8 @@
     UoW를 가능한 한 작게 유지하는 것입니다. 각 사용 사례의 실행 방법에 대한 "레시피"가
     한 곳에 기록되어 있기 때문에 코드베이스를 이해하는 데 도움이 됩니다.
 """
-from typing import Type, Callable
 from collections import defaultdict
+from typing import Callable, Type
 
 from fastmsa.domain import Event
 
