@@ -61,7 +61,7 @@ def schema_from(
             )
 
             for field_name, field_type in annotations.items():
-                if type(field_type) == GenericAlias and field_type.__mro__[0] in [
+                if type(field_type) == GenericAlias and field_type.__mro__[0] in [  # type: ignore
                     list,
                     set,
                 ]:
@@ -69,7 +69,7 @@ def schema_from(
                     arg_type = field_type.__args__[0]
                     arg_type = SCHEMAS.get(arg_type, arg_type)
                     field_type.__args__[0]
-                    annotations[field_name] = GenericAlias(gen_type, (arg_type,))
+                    annotations[field_name] = GenericAlias(gen_type, (arg_type,))  # type: ignore
                 if is_dataclass(field_type):
                     field = _get_model(field_type)
                     annotations[field_name] = field
