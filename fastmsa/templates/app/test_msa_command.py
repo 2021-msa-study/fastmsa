@@ -133,7 +133,7 @@ def test_msa_render_template(msa: FastMSACommand):
         readme_file = msa.path / "README.md"
         assert readme_file.exists()
         text = readme_file.read_text()
-        assert text.startswith(f"# {msa._name.capitalize()}")
+        assert text.startswith(f"# {msa.name.capitalize()}")
 
 
 def test_fail_init_again(msa: FastMSACommand):

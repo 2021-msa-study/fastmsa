@@ -12,7 +12,7 @@ from tests.app.domain.models import Batch
 
 def test_add_batch() -> None:
     uow = FakeUnitOfWork(Product, "sku")
-    services.batch.add("b1", "CRUNCHY-ARMCHAIR", 100, None, uow)
+    services.add_batch("b1", "CRUNCHY-ARMCHAIR", 100, None, uow)
     assert uow.repo.get("CRUNCHY-ARMCHAIR") is not None
     assert uow.committed
 
@@ -43,13 +43,13 @@ def test_commits() -> None:
 
 def test_allocate_returns_allocation() -> None:
     uow = FakeUnitOfWork(Product, "sku")
-    services.batch.add("batch1", "COMPLICATED-LAMP", 100, None, uow)
+    services.add_batch("batch1", "COMPLICATED-LAMP", 100, None, uow)
     result = services.batch.allocate("o1", "COMPLICATED-LAMP", 10, uow)
     assert "batch1" == result
 
 
 def test_allocate_errors_for_invalid_sku() -> None:
     uow = FakeUnitOfWork(Product, "sku")
-    services.batch.add("b1", "AREALSKU", 100, None, uow)
+    services.add_batch("b1", "AREALSKU", 100, None, uow)
     with pytest.raises(services.batch.InvalidSku, match="Invalid sku NONEXISTENTSKU"):
         services.batch.allocate("o1", "NONEXISTENTSKU", 10, uow)

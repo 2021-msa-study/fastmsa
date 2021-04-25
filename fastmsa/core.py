@@ -9,6 +9,10 @@ import uvicorn
 from sqlalchemy.pool import Pool, StaticPool
 
 
+class Event:
+    pass
+
+
 class FastMSA:
     """FastMSA App 설정."""
 

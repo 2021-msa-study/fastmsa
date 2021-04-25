@@ -17,7 +17,6 @@ from typing import Any, Generic, Optional, Type, TypeVar
 
 from sqlalchemy.orm import Session
 
-from fastmsa import msgbus
 from fastmsa.domain import Aggregate, Entity
 from fastmsa.orm import SessionMaker, get_sessionmaker
 from fastmsa.repo import AbstractRepository, SqlAlchemyRepository
@@ -47,15 +46,12 @@ class AbstractUnitOfWork(Generic[A], AbstractContextManager[Session]):
     def commit(self) -> None:
         """세션을 커밋합니다."""
         self._commit()
-        self.publish_events()
 
-    def publish_events(self):
+    def collect_new_events(self):
+        """처리된 Aggregate 객체에 추가된 이벤트를 수집합니다."""
         for agg in self.repo.seen:
-            if not hasattr(agg, "events"):
-                continue
             while agg.events:
-                event = agg.events.pop(0)
-                msgbus.handle(event)
+                yield agg.events.pop(0)
 
     @abc.abstractmethod
     def _commit(self) -> None:

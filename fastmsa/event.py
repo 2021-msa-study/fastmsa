@@ -8,17 +8,27 @@
     한 곳에 기록되어 있기 때문에 코드베이스를 이해하는 데 도움이 됩니다.
 """
 from collections import defaultdict
-from typing import Callable, Type
+from fastmsa.uow import AbstractUnitOfWork
+from fastmsa.core import Event
+from typing import Any, Callable, Type, TypeVar, Generic
 
-from fastmsa.domain import Event
 
 HANDLERS = defaultdict[Type[Event], list[Callable]](list)
 
+E = TypeVar("E", bound=Event)
+F = TypeVar("F", bound=Callable[..., Any])
 
-def handle(event: Event):
-    """이벤트 핸들러에 레지스트리에서 `event` 와 관련된 모든 핸들러를 실행합니다."""
-    for handler in HANDLERS[type(event)]:
-        handler(event)
+
+def handle_event(event: Event, uow: AbstractUnitOfWork):
+    queue = [event]
+    results = []
+    while queue:
+        event = queue.pop(0)
+        for handler in HANDLERS[type(event)]:
+            results.append(handler(event, uow=uow))
+            queue.extend(uow.collect_new_events())
+
+    return results
 
 
 def clear_handlers():
@@ -26,15 +36,14 @@ def clear_handlers():
     HANDLERS.clear()
 
 
-def event_handler(event: Type[Event]):
+def on_event(etype: Type[E]) -> Callable[[F], F]:
     """이벤트 핸들러 데코레이터.
 
     함수를 HANDLERS 레지스트리에 등록합니다.
     """
-    global HANDLERS
 
-    def _wrapper(func: Callable):
-        HANDLERS[event].append(func)
+    def _wrapper(func: F) -> F:
+        HANDLERS[etype].append(func)
         return func
 
     return _wrapper

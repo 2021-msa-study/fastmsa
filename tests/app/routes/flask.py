@@ -19,7 +19,7 @@ def add_batch() -> FlaskResponse:
         eta = request.json["eta"]
         if eta:
             eta = datetime.fromisoformat(eta).date()
-        services.batch.add(
+        services.add_batch(
             request.json["ref"], request.json["sku"], request.json["qty"], eta, uow
         )
         return "OK", 201

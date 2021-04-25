@@ -1,6 +1,6 @@
-from __future__ import annotations
-
 from typing import Any, Generic, Protocol, TypeVar
+
+from fastmsa.core import Event
 
 
 class Entity(Protocol):
@@ -29,7 +29,3 @@ class Aggregate(Entity, Generic[E]):
         if not hasattr(self, "_events"):
             self._events = list[Event]()
         return self._events
-
-
-class Event:
-    pass

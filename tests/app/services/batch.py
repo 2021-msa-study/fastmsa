@@ -24,7 +24,7 @@ def is_valid_sku(sku: str, batches: Sequence[Batch]) -> bool:
     return sku in {it.sku for it in batches}
 
 
-def add(
+def add_batch(
     ref: str,
     sku: str,
     qty: int,
@@ -42,7 +42,9 @@ def add(
         uow.commit()
 
 
-def allocate(orderid: str, sku: str, qty: int, uow: AbstractUnitOfWork[Product]) -> str:
+def allocate(
+    orderid: str, sku: str, qty: int, uow: AbstractUnitOfWork[Product]
+) -> Optional[str]:
     """ETA가 가장 빠른 배치를 찾아 :class:`.OrderLine` 을 할당합니다.
 
     Raises:

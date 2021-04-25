@@ -21,6 +21,7 @@ from fastmsa.uow import AbstractUnitOfWork, SqlAlchemyUnitOfWork
 from tests.app.adapters.orm import init_mappers
 from tests.app.domain.aggregates import Product
 
+
 # types
 
 SqlAlchemyRepoMaker = Callable[[], SqlAlchemyRepository]
@@ -30,11 +31,6 @@ AddStockFunc = Callable[[AddStockLines], None]
 """:meth:`add_stock` 함수 타입."""
 
 from tests.app.config import Config
-
-
-@pytest.fixture
-def msa():
-    return Config(__name__)
 
 
 @pytest.fixture
@@ -50,6 +46,14 @@ def session() -> Session:
     metadata = start_mappers(use_exist=False, init_hooks=[init_mappers])
     metadata.create_all(engine)
     return sessionmaker(engine)()
+
+
+@pytest.fixture
+def msa(session):
+    from tests.app.routes import fastapi  # noqa
+
+    init_event_handlers()
+    return Config(__name__)
 
 
 @pytest.fixture
@@ -79,13 +83,9 @@ def get_uow(get_session: SessionMaker) -> Callable[[], AbstractUnitOfWork[Produc
 def init_flask_routes(msa: FastMSA, app: Flask):
     from tests.app.routes import flask  # noqa
 
-    ...
 
-
-def init_routes(msa: FastMSA, app: FastAPI):
-    from tests.app.routes import fastapi  # noqa
-
-    ...
+def init_event_handlers():
+    import tests.app.handlers.batch  # noqa
 
 
 @pytest.fixture
@@ -118,3 +118,6 @@ def server_fastapi(msa: FastMSA, get_session: SessionMaker):
     """
 
     test_app = init_app(msa, init_routes)
+
+
+init_event_handlers()
