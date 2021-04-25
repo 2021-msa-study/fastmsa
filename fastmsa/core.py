@@ -16,7 +16,7 @@ class Event:
 class FastMSA:
     """FastMSA App 설정."""
 
-    title: str
+    title: str = "FastMSA"
 
     def __init__(self, name: str, title: Optional[str] = None):
         self.name = name

@@ -218,7 +218,7 @@ class FastMSACommand:
         for fname in glob.glob(f"./{self.name}/domain/*.py"):
             if Path(fname).name.startswith("_"):
                 continue
-            module_name = fname[2:-3].replace("/", ".")
+            module_name = fname[2:-3].replace("/", ".").replace("\\", ".")
             module = importlib.import_module(module_name)
 
             members = getmembers(module)
@@ -272,7 +272,7 @@ class FastMSACommand:
         for fname in glob.glob(f"./{self.name}/routes/*.py"):
             if Path(fname).name.startswith("_"):
                 continue
-            module_name = fname[2:-3].replace("/", ".")
+            module_name = fname[2:-3].replace("/", ".").replace('\\', '.')
             module = importlib.import_module(module_name)
             modules.append(module)
 
