@@ -5,17 +5,14 @@ from __future__ import annotations
 from typing import Callable, Generator, Optional, Tuple
 
 import pytest
-from flask.app import Flask
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from fastmsa import FastMSA
 from fastmsa.api import init_app
-from fastmsa.flask import init_app as init_flask_app
 from fastmsa.orm import SessionMaker, clear_mappers, init_db, start_mappers
 from fastmsa.repo import SqlAlchemyRepository
-from fastmsa.test.e2e import FlaskServerThread
 from fastmsa.uow import AbstractUnitOfWork, SqlAlchemyUnitOfWork
 from tests.app.adapters.orm import init_mappers
 from tests.app.domain.aggregates import Product
@@ -59,7 +56,7 @@ def get_session(msa: FastMSA) -> SessionMaker:
     """:class:`.Session` 팩토리 메소드(:class:`~app.adapters.orm.SessionMaker`)
     를 리턴하는 픽스쳐 입니다.
 
-    호출시마다 :meth:`~app.apps.flask.init_db` 을 호출(`drop_all=True`)하여
+    호출시마다 :meth:`fastmsa.orm.init_db` 을 호출(`drop_all=True`)하여
     모든 DB 엔티티를 매번 재생성합니다.
 
     :rtype: :class:`~app.adapters.orm.SessionMaker`
@@ -78,44 +75,5 @@ def get_uow(get_session: SessionMaker) -> Callable[[], AbstractUnitOfWork[Produc
     return lambda: SqlAlchemyUnitOfWork(Product, get_session)
 
 
-def init_flask_routes(msa: FastMSA, app: Flask):
-    from tests.app.routes import flask  # noqa
-
-
 def init_event_handlers():
     import tests.app.handlers.batch  # noqa
-
-
-@pytest.fixture
-# pylint: disable=unused-argument
-def server(
-    msa: FastMSA, get_session: SessionMaker
-) -> Generator[FlaskServerThread, None, None]:
-    # noqa
-    """:class:`ServerThread` 로 구현된 재시작 가능한 멀티스레드 Flask 서버를
-    리턴하는 픽스쳐입니다.
-
-    픽스쳐 사용후에는 `shutdown`을 통해 서버를 종료합니다.
-    """
-
-    test_app = init_flask_app(msa, init_flask_routes)
-    server = FlaskServerThread(msa, test_app)
-    server.start()
-
-    yield server
-
-    server.shutdown()
-
-
-@pytest.fixture
-def server_fastapi(msa: FastMSA, get_session: SessionMaker):
-    """:class:`ServerThread` 로 구현된 재시작 가능한 멀티스레드 Flask 서버를
-    리턴하는 픽스쳐입니다.
-
-    픽스쳐 사용후에는 `shutdown`을 통해 서버를 종료합니다.
-    """
-
-    test_app = init_app(msa, init_routes)
-
-
-init_event_handlers()

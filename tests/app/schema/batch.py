@@ -4,7 +4,7 @@ from typing import Optional
 from fastmsa.schema import BaseModel
 
 
-class BatchAdd(BaseModel):
+class BatchAddSchema(BaseModel):
     eta: Optional[datetime]
     ref: str
     sku: str
@@ -18,7 +18,7 @@ class BatchDelete(BaseModel):
     qty: int
 
 
-class BatchAllocate(BaseModel):
+class BatchAllocateSchema(BaseModel):
     eta: Optional[datetime]
     orderid: str
     ref: str

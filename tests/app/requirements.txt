@@ -1,13 +1,11 @@
 # production
 requests
 sqlalchemy
-flask
 fastapi
 fastalchemy
 
 # development
 pytest
-pytest-flask
 pytest-watch
 pydocstyle
 pylint

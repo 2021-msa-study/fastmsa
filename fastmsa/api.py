@@ -12,10 +12,10 @@ app = FastAPI(title=__name__)  # pylint:
 def init_app(
     msa: FastMSA, init_hook: Callable[[FastMSA, FastAPI], Any] = None
 ) -> FastAPI:
-    """Flask 앱을 초기화 합니다.
+    """FastAPI 앱을 초기화 합니다.
 
-    :mod:`app.routes.flask` 모듈에서 엔드포인트 라우팅 설정을 로드하고
-    :meth:`.init_db` 를 호출하여 DB를 초기화 합니다.
+    :mod:`app.routes` 모듈 및에 정의된 엔드포인트 라우팅 설정을 로드하고
+    :meth:`fastmsa.orm.init_db` 를 호출하여 DB를 초기화 합니다.
     """
     from fastmsa.orm import init_db  # noqa
 
@@ -25,10 +25,3 @@ def init_app(
     init_db()
 
     return app
-
-
-route = app.route
-post = app.post
-get = app.get
-put = app.put
-delete = app.delete

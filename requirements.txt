@@ -1,6 +1,5 @@
 fastapi
 uvicorn
-flask
 sqlalchemy
 requests
 psycopg2-binary

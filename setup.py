@@ -30,7 +30,11 @@ setup(
     author="Joseph Kim, Benzamin Yoon",
     author_email="cloudeyes@gmail.com",
     packages=["fastmsa", "fastmsa.test"],
-    package_data={"": extra_files},
+    package_data={
+        "": extra_files,
+        "fastmsa": ["py.typed"],
+        "fastmsa.test": ["py.typed"],
+    },
     url="https://github.com/2021-msa-study/fastmsa",
     download_url="https://github.com/2021-msa-study/fastmsa/archive/v0.1.tar.gz",
     keywords=["fastmsa", "microservice" "framework", "sqlalchemy", "fastapi"],

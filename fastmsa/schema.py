@@ -2,6 +2,7 @@
 import collections
 from dataclasses import Field as DataClassField
 from inspect import getmembers
+from types import GenericAlias
 from typing import Any, Callable, Optional, Type, TypeVar, Union, cast
 
 from pydantic import BaseModel, Field  # noqa
@@ -12,6 +13,8 @@ AnyType = Type[Any]
 
 D = TypeVar("D")
 T = TypeVar("T")
+
+SCHEMAS = dict[Type, AnyType]()
 
 
 def schema_from(
@@ -49,7 +52,7 @@ def schema_from(
 
             annotations = (
                 dict(
-                    (name, type)
+                    (name, SCHEMAS.get(type, type))
                     for name, type in DataClass.__annotations__.items()
                     if not excludes or name not in excludes
                 )
@@ -58,6 +61,15 @@ def schema_from(
             )
 
             for field_name, field_type in annotations.items():
+                if type(field_type) == GenericAlias and field_type.__mro__[0] in [
+                    list,
+                    set,
+                ]:
+                    gen_type = field_type.__mro__[0]
+                    arg_type = field_type.__args__[0]
+                    arg_type = SCHEMAS.get(arg_type, arg_type)
+                    field_type.__args__[0]
+                    annotations[field_name] = GenericAlias(gen_type, (arg_type,))
                 if is_dataclass(field_type):
                     field = _get_model(field_type)
                     annotations[field_name] = field
@@ -84,6 +96,8 @@ def schema_from(
                     setattr(field, "field_info", member)
             return model
 
-        return _get_model(DataClass, excludes=excludes)
+        schema_class = _get_model(DataClass, excludes=excludes)
+        SCHEMAS[DataClass] = schema_class
+        return schema_class
 
     return _wrapper
