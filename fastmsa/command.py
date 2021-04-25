@@ -13,7 +13,7 @@ from typing import Any, Optional, Sequence
 
 import jinja2
 import uvicorn
-from colorama import Fore, Style
+from colorama import Fore, Style, init as init_colors
 from pkg_resources import resource_string
 from sqlalchemy.sql.schema import MetaData
 from starlette.routing import BaseRoute
@@ -21,6 +21,8 @@ from starlette.routing import BaseRoute
 import fastmsa.core
 from fastmsa.core import FastMSA, FastMSAError
 from fastmsa.utils import cwd, scan_resource_dir
+
+init_colors()  # For Windows environment
 
 YELLOW, CYAN, RED = Fore.YELLOW, Fore.CYAN, Fore.RED
 WHITE_EX, CYAN_EX = Fore.LIGHTWHITE_EX, Fore.LIGHTCYAN_EX
