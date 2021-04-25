@@ -18,6 +18,9 @@ class AbstractRepository(Generic[E], abc.ABC, ContextDecorator):
 
     entity_class: Type[E]
 
+    def __init__(self):
+        self.seen = set[E]()
+
     def __enter__(self) -> AbstractRepository[E]:
         """`module`:contextmanager`의 필수 인터페이스 구현."""
         return self
@@ -32,13 +35,30 @@ class AbstractRepository(Generic[E], abc.ABC, ContextDecorator):
         """레포지터리와 연결된 저장소 객체를 종료합니다."""
         return
 
-    @abc.abstractmethod
     def add(self, item: E) -> None:
+        """레포지터리에 :class:`T` 객체를 추가합니다."""
+        self._add(item)
+        self.seen.add(item)
+
+    @abc.abstractmethod
+    def _add(self, item: E) -> None:
         """레포지터리에 :class:`T` 객체를 추가합니다."""
         raise NotImplementedError
 
-    @abc.abstractmethod
     def get(self, id: str = "", **kwargs: str) -> Optional[E]:
+        """주어진 레퍼런스 문자열에 해당하는 :class:`T` 객체를 조회합니다.
+
+        객체를 찾았을 경우 `seen` 컬렉셔에 추가합니다.
+        못 찾을 경우 ``None`` 을 리턴합니다.
+        """
+        item = self._get(id)
+
+        if item:
+            self.seen.add(item)
+        return item
+
+    @abc.abstractmethod
+    def _get(self, id: str = "", **kwargs: str) -> Optional[E]:
         """주어진 레퍼런스 문자열에 해당하는 :class:`T` 객체를 조회합니다.
 
         해당하는 배치를 못 찾을 경우 ``None`` 을 리턴합니다.
@@ -66,6 +86,7 @@ class SqlAlchemyRepository(AbstractRepository[E]):
 
     def __init__(self, entity_class: Type[E], session: Session = None):
         """임의의 Aggregate T 를 받아 T에대한 Repostiory를 초기화합니다."""
+        super().__init__()
         self.entity_class = entity_class
         self.session: Session
         if not session:
@@ -83,10 +104,10 @@ class SqlAlchemyRepository(AbstractRepository[E]):
     def close(self) -> None:
         hasattr(self.session, "close") and self.session.close()
 
-    def add(self, item: E) -> None:
+    def _add(self, item: E) -> None:
         self.session.add(item)
 
-    def get(self, id: str = "", **kwargs: str) -> Optional[E]:
+    def _get(self, id: str = "", **kwargs: str) -> Optional[E]:
         if id:
             return self.session.query(self.entity_class).get(id)
 

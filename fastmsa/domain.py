@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Generic, Protocol, Type, TypeVar
+from typing import Any, Generic, Protocol, TypeVar
 
 
 class Entity(Protocol):
@@ -13,8 +13,23 @@ E = TypeVar("E", bound=Entity)
 
 
 class Aggregate(Entity, Generic[E]):
-    items: list[E]
-    type: Type[E]
+    """Aggregate 프로토콜 명세."""
 
-    class Meta:
-        entity_class: Type
+    items: list[E]
+    _events: list[Event]
+
+    def add_event(self, e: Event):
+        if not hasattr(self, "_events"):
+            self._events = list[Event]()
+
+        self._events.append(e)
+
+    @property
+    def events(self) -> list[Event]:
+        if not hasattr(self, "_events"):
+            self._events = list[Event]()
+        return self._events
+
+
+class Event:
+    pass

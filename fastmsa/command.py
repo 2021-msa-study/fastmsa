@@ -23,6 +23,7 @@ from fastmsa.core import FastMSA, FastMSAError
 from fastmsa.utils import cwd, scan_resource_dir
 
 YELLOW, CYAN, RED = Fore.YELLOW, Fore.CYAN, Fore.RED
+WHITE_EX = Fore.LIGHTWHITE_EX
 
 
 def fg(text, color=Fore.WHITE):
@@ -175,10 +176,10 @@ class FastMSACommand:
         """FastMSA 앱 정보를 출력합니다."""
         dot = bold("-", YELLOW)
         self.banner(f"{bold('FastMSA Information')}", icon="ℹ️ ")
-        print(dot, fg("Name", CYAN), "  :", bold(self.name))
-        print(dot, fg("Title", CYAN), " :", bold(self.msa.title))
-        print(dot, fg("Module", CYAN), ":", bold(self.module_name))
-        print(dot, fg("Path", CYAN), "  :", bold(self.path))
+        print(dot, fg("Name", CYAN), "  :", fg(self.name, WHITE_EX))
+        print(dot, fg("Title", CYAN), " :", fg(self.msa.title, WHITE_EX))
+        print(dot, fg("Module", CYAN), ":", fg(self.module_name, WHITE_EX))
+        print(dot, fg("Path", CYAN), "  :", fg(self.path, WHITE_EX))
 
     def run(
         self,

@@ -7,12 +7,6 @@ from datetime import date
 from typing import Optional
 
 
-class OutOfStock(Exception):
-    """:class:`Batch` 에 할당할 재고(Stock)가 없을 때 발생하는 예외입니다."""
-
-    ...
-
-
 @dataclass
 class Order:
     """고객이 발주하는 주문(Order) 모델입니다.."""

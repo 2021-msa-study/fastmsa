@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session
 from fastmsa.domain import Aggregate, Entity
 from fastmsa.orm import SessionMaker, get_sessionmaker
 from fastmsa.repo import AbstractRepository, SqlAlchemyRepository
+from fastmsa import msgbus
 
 E = TypeVar("E", bound=Entity)
 A = TypeVar("A", bound=Aggregate)
@@ -43,9 +44,21 @@ class AbstractUnitOfWork(Generic[A], AbstractContextManager[Session]):
         self.rollback()  # commit() 안되었을때 변경을 롤백합니다.
         # (이미 커밋 되었을 경우 rollback은 아무 효과도 없음)
 
-    @abc.abstractmethod
     def commit(self) -> None:
         """세션을 커밋합니다."""
+        self._commit()
+        self.publish_events()
+
+    def publish_events(self):
+        for agg in self.repo.seen:
+            if not hasattr(agg, "events"):
+                continue
+            while agg.events:
+                event = agg.events.pop(0)
+                msgbus.handle(event)
+
+    @abc.abstractmethod
+    def _commit(self) -> None:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -65,6 +78,8 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork[A]):  # type: ignore
         items: Optional[list[A]] = None,
     ) -> None:
         """``SqlAlchemy`` 기반의 UoW를 초기화합니다."""
+        super().__init__()
+
         if items is None:
             items = []
 
@@ -101,7 +116,7 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork[A]):  # type: ignore
         if self.session:
             self.session.close()
 
-    def commit(self) -> None:
+    def _commit(self) -> None:
         """세션을 커밋합니다."""
         self.committed = True
         if self.session:

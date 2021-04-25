@@ -41,13 +41,14 @@ class FakeRepository(AbstractRepository[E]):
     """단위 테스트를 위한 Fake 레포지터리."""
 
     def __init__(self, id_field: str, items: Optional[list[E]] = None):
+        super().__init__()
         self.id_field = id_field
         self._items = set(items) if items else set()
 
-    def add(self, item: E) -> None:
+    def _add(self, item: E) -> None:
         self._items.add(item)
 
-    def get(self, id: str = "", **kwargs: str) -> Optional[E]:
+    def _get(self, id: str = "", **kwargs: str) -> Optional[E]:
         item = next((p for p in self._items if getattr(p, self.id_field) == id), None)
         return item
 
@@ -86,10 +87,11 @@ class FakeUnitOfWork(AbstractUnitOfWork[A]):
         id_field: str,
         items: Optional[list[A]] = None,
     ) -> None:
+        super().__init__()
         self.repo = FakeRepository(id_field, items)
         self.committed = False
 
-    def commit(self) -> None:
+    def _commit(self) -> None:
         self.committed = True
 
     def rollback(self) -> None:

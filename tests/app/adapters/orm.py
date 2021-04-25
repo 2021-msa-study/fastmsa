@@ -1,8 +1,7 @@
 """ORM 어댑터 모듈"""
 from __future__ import annotations
 
-from sqlalchemy import (Column, Date, ForeignKey, Integer, MetaData, String,
-                        Table)
+from sqlalchemy import Column, Date, ForeignKey, Integer, MetaData, String, Table
 from sqlalchemy.orm import mapper, relationship
 
 from tests.app.domain.aggregates import Product
