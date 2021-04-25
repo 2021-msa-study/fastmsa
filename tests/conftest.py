@@ -2,7 +2,7 @@
 """pytest 에서 사용될 전역 Fixture들을 정의합니다."""
 from __future__ import annotations
 
-from typing import Callable, Generator, Optional, Tuple
+from typing import Callable, Optional, Tuple
 
 import pytest
 from sqlalchemy import create_engine
@@ -10,7 +10,6 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from fastmsa import FastMSA
-from fastmsa.api import init_app
 from fastmsa.orm import SessionMaker, clear_mappers, init_db, start_mappers
 from fastmsa.repo import SqlAlchemyRepository
 from fastmsa.uow import AbstractUnitOfWork, SqlAlchemyUnitOfWork

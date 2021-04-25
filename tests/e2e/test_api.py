@@ -5,9 +5,9 @@ from typing import Optional
 import pytest
 from fastapi.testclient import TestClient
 
-from fastmsa.core import FastMSA
 from fastmsa.api import app
-from tests import random_batchref, random_sku, random_orderid
+from fastmsa.core import FastMSA
+from tests import random_batchref, random_orderid, random_sku
 
 
 @pytest.fixture

@@ -6,9 +6,7 @@ import time
 import uvicorn
 from fastapi import FastAPI
 from uvicorn.config import Config
-from werkzeug.serving import make_server
 
-from fastmsa.core import FastMSA
 
 
 class FastApiServer(uvicorn.Server):
