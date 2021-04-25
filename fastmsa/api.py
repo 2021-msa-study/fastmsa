@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastmsa.core import FastMSA
 
 # globals
-app = FastAPI(title=__name__)  # pylint:
+app: FastAPI = FastAPI(title=__name__)  # pylint:
 
 
 def init_app(
