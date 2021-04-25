@@ -33,7 +33,7 @@ item = Table(
 product = Table(
     "product",
     metadata,
-    Column("id", String(255), primary_key=True),
+    Column("id", Integer, primary_key=True),
     Column("version_number", Integer, nullable=False, server_default="0"),
     extend_existing=True,
 )

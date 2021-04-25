@@ -8,7 +8,6 @@ from fastapi import FastAPI
 from uvicorn.config import Config
 
 
-
 class FastApiServer(uvicorn.Server):
     def __init__(self, app: FastAPI, port=5000):
         super().__init__(Config(app, host="127.0.0.1", port=port, log_level="info"))

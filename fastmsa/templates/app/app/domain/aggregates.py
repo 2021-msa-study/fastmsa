@@ -10,9 +10,6 @@ from .models import Item
 class Product(Aggregate[Item]):
     """Sample aggregate model."""
 
-    class Meta:
-        entity_class = Item
-
-    id: str
+    id: int
     items: list[Item]
     version_number: int = 0

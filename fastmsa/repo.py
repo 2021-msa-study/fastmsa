@@ -45,7 +45,7 @@ class AbstractRepository(Generic[E], abc.ABC, ContextDecorator):
         """레포지터리에 :class:`T` 객체를 추가합니다."""
         raise NotImplementedError
 
-    def get(self, id: str = "", **kwargs: str) -> Optional[E]:
+    def get(self, id: Any = "", **kwargs: str) -> Optional[E]:
         """주어진 레퍼런스 문자열에 해당하는 :class:`T` 객체를 조회합니다.
 
         객체를 찾았을 경우 `seen` 컬렉셔에 추가합니다.
