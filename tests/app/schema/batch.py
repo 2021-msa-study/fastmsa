@@ -21,6 +21,5 @@ class BatchDelete(BaseModel):
 class BatchAllocateSchema(BaseModel):
     eta: Optional[datetime]
     orderid: str
-    ref: str
     sku: str
     qty: int
