@@ -1,9 +1,7 @@
-from fastmsa.test.unit import FakeUnitOfWork
 from fastmsa.event import handle_event
-
+from fastmsa.test.unit import FakeUnitOfWork
 from tests.app.domain.aggregates import Product
 from tests.app.domain.events import AllocationRequired, BatchCreated
-from tests.app.services.batch import add_batch, allocate
 
 
 class TestAddBatch:

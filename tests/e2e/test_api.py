@@ -1,12 +1,11 @@
 """FastAPI 로 구현된 엔드포인트 테스트입니다."""
-from typing import Callable, Optional
-from fastmsa.core import FastMSA
-import pytest
+from typing import Optional
 
-from fastapi import FastAPI
+import pytest
 from fastapi.testclient import TestClient
 
-from tests import random_batchref, random_orderid, random_sku
+from fastmsa.core import FastMSA
+from tests import random_batchref, random_sku
 
 
 @pytest.fixture

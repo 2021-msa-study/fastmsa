@@ -1,6 +1,4 @@
 fastmsa
-sqlalchemy
-requests
 psycopg2-binary
 
 pytest

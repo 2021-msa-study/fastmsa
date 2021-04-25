@@ -8,10 +8,10 @@
     한 곳에 기록되어 있기 때문에 코드베이스를 이해하는 데 도움이 됩니다.
 """
 from collections import defaultdict
-from fastmsa.uow import AbstractUnitOfWork
-from fastmsa.core import Event
-from typing import Any, Callable, Type, TypeVar, Generic
+from typing import Any, Callable, Type, TypeVar
 
+from fastmsa.core import Event
+from fastmsa.uow import AbstractUnitOfWork
 
 HANDLERS = defaultdict[Type[Event], list[Callable]](list)
 

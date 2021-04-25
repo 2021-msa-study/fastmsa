@@ -1,9 +1,9 @@
 from fastmsa.event import on_event
 from fastmsa.uow import AbstractUnitOfWork
-
-from tests.app.domain.models import Batch, OrderLine
-from tests.app.domain.events import AllocationRequired, OutOfStock, BatchCreated
 from tests.app.domain.aggregates import Product
+from tests.app.domain.events import (AllocationRequired, BatchCreated,
+                                     OutOfStock)
+from tests.app.domain.models import Batch, OrderLine
 
 
 class InvalidSku(Exception):

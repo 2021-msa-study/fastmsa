@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Callable, Generator, Optional, Tuple
 
 import pytest
-from fastapi.applications import FastAPI
 from flask.app import Flask
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -20,7 +19,6 @@ from fastmsa.test.e2e import FlaskServerThread
 from fastmsa.uow import AbstractUnitOfWork, SqlAlchemyUnitOfWork
 from tests.app.adapters.orm import init_mappers
 from tests.app.domain.aggregates import Product
-
 
 # types
 
