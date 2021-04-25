@@ -23,7 +23,7 @@ from fastmsa.core import FastMSA, FastMSAError
 from fastmsa.utils import cwd, scan_resource_dir
 
 YELLOW, CYAN, RED = Fore.YELLOW, Fore.CYAN, Fore.RED
-WHITE_EX = Fore.LIGHTWHITE_EX
+WHITE_EX, CYAN_EX = Fore.LIGHTWHITE_EX, Fore.LIGHTCYAN_EX
 
 
 def fg(text, color=Fore.WHITE):
@@ -104,7 +104,9 @@ class FastMSACommand:
             if force:
                 self.print_warn(f"*{bold('force')}* initializing project...")
             else:
-                raise FastMSAInitError(f"project already initialized at: {self.path}")
+                raise FastMSAInitError(
+                    f"project already initialized at: {self.path}"
+                )
 
         with cwd(self.path):
             template_dir = "templates/app"
@@ -139,7 +141,7 @@ class FastMSACommand:
     def init_app(self):
         logger = logging.getLogger("uvicorn")
         logger.info(bold("Load config and initialize app..."))
-        bullet = bold("✔️", Fore.GREEN)
+        bullet = bold("✓", Fore.GREEN)
 
         logger.info(
             f"{bullet} init {fg('domain models', CYAN)}... %s",
@@ -148,7 +150,8 @@ class FastMSACommand:
 
         logger.info(
             f"{bullet} init {fg('ORM mappings', CYAN)}.... %s",
-            bold(f"{len(self.load_orm_mappers().tables)}", YELLOW) + " tables mapped.",
+            bold(f"{len(self.load_orm_mappers().tables)}", YELLOW)
+            + " tables mapped.",
         )
 
         logger.info(
@@ -175,7 +178,7 @@ class FastMSACommand:
     def info(self):
         """FastMSA 앱 정보를 출력합니다."""
         dot = bold("-", YELLOW)
-        self.banner(f"{bold('FastMSA Information')}", icon="ℹ️ ")
+        self.banner(f"{bold('FastMSA Information')}", icon="💡")
         print(dot, fg("Name", CYAN), "  :", fg(self.name, WHITE_EX))
         print(dot, fg("Title", CYAN), " :", fg(self.msa.title, WHITE_EX))
         print(dot, fg("Module", CYAN), ":", fg(self.module_name, WHITE_EX))
@@ -245,7 +248,8 @@ class FastMSACommand:
             mapper_paths = [mapper_file_path]
         else:
             mapper_paths = [
-                Path(p) for p in glob.glob(f"{self.app_path}/adapters/orm/*.py")
+                Path(p)
+                for p in glob.glob(f"{self.app_path}/adapters/orm/*.py")
             ]
 
         mapper_paths = [p.relative_to(self.app_path) for p in mapper_paths]
@@ -272,13 +276,15 @@ class FastMSACommand:
         for fname in glob.glob(f"./{self.name}/routes/*.py"):
             if Path(fname).name.startswith("_"):
                 continue
-            module_name = fname[2:-3].replace("/", ".").replace('\\', '.')
+            module_name = fname[2:-3].replace("/", ".").replace("\\", ".")
             module = importlib.import_module(module_name)
             modules.append(module)
 
         routes: list[Any] = app.routes
         return [
-            r for r in routes if r.endpoint.__module__.startswith(self.name + ".routes")
+            r
+            for r in routes
+            if r.endpoint.__module__.startswith(self.name + ".routes")
         ]
 
 
@@ -291,7 +297,8 @@ class FastMSACommandParser:
     def __init__(self):
         """기본 생성자."""
         self.parser = ArgumentParser(
-            "msa", description="FastMSA : command line utility..."
+            "msa",
+            description=f"✨ {bold('FastMSA')} : {fg('command line utility', CYAN_EX)}",
         )
         self._subparsers = self.parser.add_subparsers(dest="command")
         self._cmd = FastMSACommand()
