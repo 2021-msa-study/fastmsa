@@ -143,7 +143,7 @@ class FastMSACommand:
     def init_app(self):
         logger = logging.getLogger("uvicorn")
         logger.info(bold("Load config and initialize app..."))
-        bullet = bold("✓", Fore.GREEN)
+        bullet = bold("✓" if os.name != 'nt' else 'v', Fore.GREEN)
 
         logger.info(
             f"{bullet} init {fg('domain models', CYAN)}... %s",
@@ -171,6 +171,8 @@ class FastMSACommand:
 
     def banner(self, msg, icon=""):
         """프로젝트 배너를 표시합니다."""
+        if os.name == "nt":
+            icon = ""
         term_width = os.get_terminal_size().columns
         banner_width = min(75, term_width)
         print("─" * banner_width)
@@ -207,6 +209,10 @@ class FastMSACommand:
 
         if not dry_run:
             sys.path.insert(0, str(self.path))
+            if os.name == "nt":
+                content = (uvicorn_init := Path(uvicorn.__file__)).read_text()
+                if 'colorama' not in content:
+                    uvicorn_init.write_text(content + "\nfrom colorama import init; init()")
             uvicorn.run(app_name, reload=reload)
 
     def load_config(self, name, module_name: Optional[str] = None) -> FastMSA:
