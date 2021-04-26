@@ -1,0 +1,8 @@
+fastmsa
+psycopg2-binary
+
+pytest
+pylint
+mypy
+pydocstyle
+black

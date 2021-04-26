@@ -1,0 +1,18 @@
+# production
+requests
+sqlalchemy
+fastapi
+fastalchemy
+
+# development
+pytest
+pytest-watch
+pydocstyle
+pylint
+
+# documentation
+sphinx
+sphinx_rtd_theme
+sphinx-autodoc-typehints
+sphinxcontrib-plantuml
+livereload

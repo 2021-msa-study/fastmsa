@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+sqlalchemy
+requests
+psycopg2-binary
+
+jinja2
+
+pytest
+pylint
+mypy
+isort
+pydocstyle
+black
