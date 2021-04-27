@@ -118,13 +118,11 @@ class FakeUnitOfWork(AbstractUnitOfWork[A]):
 class FakeMessageBus(MessageBus):
     def __init__(self, handlers: EventHandlerMap, fake_events: set[Type[Event]] = None):
         self.events_published = list[Event]()
-        if not fake_events:
-            fake_events = set()
 
         def get_fake_handler(
             e: Type[Event], handlers: list[Callable]
         ) -> list[Callable]:
-            if e in fake_events:
+            if fake_events and e in fake_events:
                 # Fake 이벤트라면 이벤트를 실행하지 않고
                 # events_published 에 추가하는 Fake 핸들러를 만들어 리턴한다.
                 def fake_handler(e: Event, uow: Any = None):
@@ -133,5 +131,5 @@ class FakeMessageBus(MessageBus):
                 return [fake_handler]
             return handlers
 
-        self.fake_handlers = {k: get_fake_handler(k, v) for k, v in HANDLERS.items()}
+        self.fake_handlers = {k: get_fake_handler(k, v) for k, v in handlers.items()}
         super().__init__(self.fake_handlers)
