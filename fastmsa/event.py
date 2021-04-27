@@ -13,22 +13,35 @@ from typing import Any, Callable, Type, TypeVar
 from fastmsa.core import Event
 from fastmsa.uow import AbstractUnitOfWork
 
-HANDLERS = defaultdict[Type[Event], list[Callable]](list)
+EventHandlerMap = dict[Type[Event], list[Callable]]
+HANDLERS: EventHandlerMap = defaultdict[Type[Event], list[Callable]](list)
 
 E = TypeVar("E", bound=Event)
 F = TypeVar("F", bound=Callable[..., Any])
+T = TypeVar("T")
 
 
-def handle_event(event: Event, uow: AbstractUnitOfWork):
-    queue = [event]
-    results = []
-    while queue:
-        event = queue.pop(0)
-        for handler in HANDLERS[type(event)]:
-            results.append(handler(event, uow=uow))
-            queue.extend(uow.collect_new_events())
+class MessageBus:
+    handlers: EventHandlerMap
 
-    return results
+    def __init__(self, handlers: EventHandlerMap):
+        self.handlers = handlers
+
+    def handle(self, event: Event, uow: AbstractUnitOfWork[T]):  # type: ignore
+        queue = [event]
+        results = []
+
+        while queue:
+            event = queue.pop(0)
+            for handler in self.handlers[type(event)]:
+                results.append(handler(event, uow=uow))
+                queue.extend(uow.collect_new_events())
+
+        return results
+
+
+messagebus = MessageBus(HANDLERS)
+"""전역 메세지 버스."""
 
 
 def clear_handlers():
@@ -36,14 +49,14 @@ def clear_handlers():
     HANDLERS.clear()
 
 
-def on_event(etype: Type[E]) -> Callable[[F], F]:
+def on_event(etype: Type[E], bus: MessageBus = messagebus) -> Callable[[F], F]:
     """이벤트 핸들러 데코레이터.
 
     함수를 HANDLERS 레지스트리에 등록합니다.
     """
 
     def _wrapper(func: F) -> F:
-        HANDLERS[etype].append(func)
+        bus.handlers[etype].append(func)
         return func
 
     return _wrapper

@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Optional
 
+from tests.app.domain.events import OutOfStock
+
 
 @dataclass
 class Order:
@@ -81,7 +83,7 @@ class Batch:
     def deallocate_one(self) -> Optional[OrderLine]:
         """주문선 `line` 을 할당 취소 합니다."""
         if not self._allocations:
-            return None
+            self._allocations.pop()
 
         line = next(iter(self._allocations))
         self._allocations.remove(line)

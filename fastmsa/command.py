@@ -13,7 +13,8 @@ from typing import Any, Optional, Sequence
 
 import jinja2
 import uvicorn
-from colorama import Fore, Style, init as init_colors
+from colorama import Fore, Style
+from colorama import init as init_colors
 from pkg_resources import resource_string
 from sqlalchemy.sql.schema import MetaData
 from starlette.routing import BaseRoute

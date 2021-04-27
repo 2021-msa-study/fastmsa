@@ -51,7 +51,17 @@ class AbstractRepository(Generic[E], abc.ABC, ContextDecorator):
         객체를 찾았을 경우 `seen` 컬렉셔에 추가합니다.
         못 찾을 경우 ``None`` 을 리턴합니다.
         """
-        item = self._get(id)
+
+        if not kwargs:
+            item = self._get(id)
+        else:
+            # get(by_field=value) 처럼 이름있는 파라메터에 `by_` 가 붙어있는 경우
+            # _get_by_field 메소드를 호출하도록 라우팅 합니다.
+            k, v = next((k, v) for k, v in kwargs.items())
+            if k.startswith("by_"):
+                item: Optional[E] = getattr(self, "_get_" + k)(v)
+            else:
+                item = self._get(id="", **kwargs)
 
         if item:
             self.seen.add(item)

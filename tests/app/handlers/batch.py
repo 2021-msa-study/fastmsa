@@ -1,9 +1,11 @@
 from fastmsa.event import on_event
 from fastmsa.uow import AbstractUnitOfWork
+from tests.app.adapters import email
+from tests.app.domain import events
 from tests.app.domain.aggregates import Product
-from tests.app.domain.events import (AllocationRequired, BatchCreated,
-                                     OutOfStock)
 from tests.app.domain.models import Batch, OrderLine
+
+ProductUnitOfWork = AbstractUnitOfWork[Product]
 
 
 class InvalidSku(Exception):
@@ -12,17 +14,17 @@ class InvalidSku(Exception):
     ...
 
 
-@on_event(OutOfStock)
-def send_out_of_stock_notification(event: OutOfStock):
+@on_event(events.OutOfStock)
+def send_out_of_stock_notification(event: events.OutOfStock):
     """OutOfStock 예외 이벤트 발생시 에러 이메일을 발송합니다."""
-    print(
-        "send mail to: stock@made.com\n",
+    email.send(
+        "stock@made.com\n",
         f"Out of stock for {event.sku}",
     )
 
 
-@on_event(BatchCreated)
-def add_batch(e: BatchCreated, uow: AbstractUnitOfWork[Product]):
+@on_event(events.BatchCreated)
+def add_batch(e: events.BatchCreated, uow: ProductUnitOfWork):
     """UOW를 이용해 배치를 추가합니다."""
     with uow:
         product = uow.repo.get(e.sku)
@@ -34,8 +36,8 @@ def add_batch(e: BatchCreated, uow: AbstractUnitOfWork[Product]):
         uow.commit()
 
 
-@on_event(AllocationRequired)
-def allocate(e: AllocationRequired, uow: AbstractUnitOfWork[Product]):
+@on_event(events.AllocationRequired)
+def allocate(e: events.AllocationRequired, uow: ProductUnitOfWork):
     """ETA가 가장 빠른 배치를 찾아 :class:`.OrderLine` 을 할당합니다.
 
     Events:
@@ -49,3 +51,11 @@ def allocate(e: AllocationRequired, uow: AbstractUnitOfWork[Product]):
         batchref = product.allocate(line)
         uow.commit()
     return batchref
+
+
+@on_event(events.BatchQuantityChanged)
+def change_batch_quantity(e: events.BatchQuantityChanged, uow: ProductUnitOfWork):
+    with uow:
+        product = uow.repo.get(by_batchref=e.ref)
+        product.change_batch_quantity(ref=e.ref, new_qty=e.qty)
+        uow.commit()
