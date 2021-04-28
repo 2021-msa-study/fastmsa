@@ -11,9 +11,9 @@ Low Gear(고속 기어) 테스트입니다.
 """
 from typing import Any, Callable, Optional, Type, TypeVar
 
-from fastmsa.core import Event, FastMSA, FastMSAError
+from fastmsa.core import Command, Event, FastMSA, FastMSAError, Message
 from fastmsa.domain import Aggregate, Entity
-from fastmsa.event import HANDLERS, EventHandlerMap, MessageBus
+from fastmsa.event import MessageBus, MessageHandlers
 from fastmsa.orm import AbstractSession
 from fastmsa.repo import AbstractRepository
 from fastmsa.uow import AbstractUnitOfWork
@@ -116,20 +116,38 @@ class FakeUnitOfWork(AbstractUnitOfWork[A]):
 
 
 class FakeMessageBus(MessageBus):
-    def __init__(self, handlers: EventHandlerMap, fake_events: set[Type[Event]] = None):
-        self.events_published = list[Event]()
+    def __init__(
+        self, handlers: MessageHandlers, fake_messages: set[Type[Message]] = None
+    ):
+        self.message_published = list[Message]()
 
-        def get_fake_handler(
+        # Fake 이벤트라면 이벤트를 실행하지 않고
+        # events_published 에 추가하는 Fake 핸들러를 만들어 리턴한다.
+        def get_fake_event_handler(
             e: Type[Event], handlers: list[Callable]
         ) -> list[Callable]:
-            if fake_events and e in fake_events:
-                # Fake 이벤트라면 이벤트를 실행하지 않고
-                # events_published 에 추가하는 Fake 핸들러를 만들어 리턴한다.
+            if fake_messages and e in fake_messages:
+
                 def fake_handler(e: Event, uow: Any = None):
-                    self.events_published.append(e)
+                    self.message_published.append(e)
 
                 return [fake_handler]
             return handlers
 
-        self.fake_handlers = {k: get_fake_handler(k, v) for k, v in handlers.items()}
-        super().__init__(self.fake_handlers)
+        def get_fake_command_handler(e: Type[Command], handler: Callable) -> Callable:
+            if fake_messages and e in fake_messages:
+
+                def fake_handler(e: Command, uow: Any = None):
+                    self.message_published.append(e)
+
+                return fake_handler
+            return handler
+
+        event_handlers, command_handlers = handlers
+        self.fake_event_handlers = {
+            k: get_fake_event_handler(k, v) for k, v in event_handlers.items()
+        }
+        self.fake_command_handlers = {
+            k: get_fake_command_handler(k, v) for k, v in command_handlers.items()
+        }
+        super().__init__((self.fake_event_handlers, self.fake_command_handlers))

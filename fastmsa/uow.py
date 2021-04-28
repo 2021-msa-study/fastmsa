@@ -47,11 +47,11 @@ class AbstractUnitOfWork(Generic[A], AbstractContextManager[Session]):
         """세션을 커밋합니다."""
         self._commit()
 
-    def collect_new_events(self):
+    def collect_new_messages(self):
         """처리된 Aggregate 객체에 추가된 이벤트를 수집합니다."""
         for agg in self.repo.seen:
-            while agg.events:
-                yield agg.events.pop(0)
+            while agg.messages:
+                yield agg.messages.pop(0)
 
     @abc.abstractmethod
     def _commit(self) -> None:

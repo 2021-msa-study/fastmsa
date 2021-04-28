@@ -2,7 +2,7 @@
 """pytest 에서 사용될 전역 Fixture들을 정의합니다."""
 from __future__ import annotations
 
-from typing import Callable, Optional, Tuple
+from typing import Callable, Generator, Optional, Tuple
 
 import pytest
 from sqlalchemy import create_engine
@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from fastmsa import FastMSA
-from fastmsa.event import EventHandlerMap
+from fastmsa.event import MessageHandlers
 from fastmsa.orm import SessionMaker, clear_mappers, init_db, start_mappers
 from fastmsa.repo import SqlAlchemyRepository
 from fastmsa.uow import AbstractUnitOfWork, SqlAlchemyUnitOfWork
@@ -44,8 +44,8 @@ def session() -> Session:
 
 
 @pytest.fixture
-def handlers():
-    yield init_event_handlers()
+def handlers() -> Generator[MessageHandlers, None, None]:
+    yield init_handlers()
 
 
 @pytest.fixture
@@ -81,8 +81,9 @@ def get_uow(get_session: SessionMaker) -> Callable[[], AbstractUnitOfWork[Produc
     return lambda: SqlAlchemyUnitOfWork(Product, get_session)
 
 
-def init_event_handlers() -> EventHandlerMap:
+def init_handlers() -> MessageHandlers:
     import tests.app.handlers.batch  # noqa
-    from fastmsa.event import HANDLERS, EventHandlerMap
+    from fastmsa.event import COMMAND_HANDLERS, EVENT_HANDLERS
 
-    return HANDLERS
+    # 테스트에 의해 글로벌 핸들러 레지스트리가 망가지지 않도록 복사본 리턴.
+    return dict(EVENT_HANDLERS), dict(COMMAND_HANDLERS)
