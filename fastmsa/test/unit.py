@@ -9,10 +9,11 @@
 
 Low Gear(고속 기어) 테스트입니다.
 """
-from typing import Optional, Type, TypeVar
+from typing import Any, Callable, Optional, Type, TypeVar
 
-from fastmsa.core import FastMSA
+from fastmsa.core import Event, FastMSA, FastMSAError
 from fastmsa.domain import Aggregate, Entity
+from fastmsa.event import HANDLERS, EventHandlerMap, MessageBus
 from fastmsa.orm import AbstractSession
 from fastmsa.repo import AbstractRepository
 from fastmsa.uow import AbstractUnitOfWork
@@ -49,7 +50,14 @@ class FakeRepository(AbstractRepository[E]):
         self._items.add(item)
 
     def _get(self, id: str = "", **kwargs: str) -> Optional[E]:
-        item = next((p for p in self._items if getattr(p, self.id_field) == id), None)
+        if not kwargs:
+            item = next(
+                (it for it in self._items if getattr(it, self.id_field) == id), None
+            )
+        else:
+            check = lambda it: all(getattr(it, k) == v for k, v in kwargs.items())
+            item = next((it for it in self._items if check(it)), None)
+
         return item
 
     def delete(self, batch: E) -> None:
@@ -74,6 +82,9 @@ class FakeSession(AbstractSession):
         self.committed = True
 
 
+R = TypeVar("R", bound=AbstractRepository)
+
+
 class FakeUnitOfWork(AbstractUnitOfWork[A]):
     """단위 테스트를 위한 Fake UoW.
 
@@ -84,11 +95,17 @@ class FakeUnitOfWork(AbstractUnitOfWork[A]):
     def __init__(
         self,
         agg_class: Type[A],
-        id_field: str,
+        id_field: Optional[str] = None,
         items: Optional[list[A]] = None,
+        repo: Optional[R] = None,
     ) -> None:
         super().__init__()
-        self.repo = FakeRepository(id_field, items)
+        if repo:
+            self.repo = repo
+        elif id_field is not None:
+            self.repo = FakeRepository(id_field, items)
+        else:
+            raise FastMSAError("id_field or repo should be given!")
         self.committed = False
 
     def _commit(self) -> None:
@@ -96,3 +113,23 @@ class FakeUnitOfWork(AbstractUnitOfWork[A]):
 
     def rollback(self) -> None:
         pass
+
+
+class FakeMessageBus(MessageBus):
+    def __init__(self, handlers: EventHandlerMap, fake_events: set[Type[Event]] = None):
+        self.events_published = list[Event]()
+
+        def get_fake_handler(
+            e: Type[Event], handlers: list[Callable]
+        ) -> list[Callable]:
+            if fake_events and e in fake_events:
+                # Fake 이벤트라면 이벤트를 실행하지 않고
+                # events_published 에 추가하는 Fake 핸들러를 만들어 리턴한다.
+                def fake_handler(e: Event, uow: Any = None):
+                    self.events_published.append(e)
+
+                return [fake_handler]
+            return handlers
+
+        self.fake_handlers = {k: get_fake_handler(k, v) for k, v in handlers.items()}
+        super().__init__(self.fake_handlers)

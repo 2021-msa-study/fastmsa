@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional
 
 from fastmsa.domain import Aggregate
-from tests.app.domain import events
+from tests.app.domain.events import AllocationRequired, OutOfStock
 from tests.app.domain.models import Batch, OrderLine
 
 
@@ -21,7 +21,7 @@ class Product(Aggregate[Batch]):
             self.version_number += 1
             return batch.reference
         except StopIteration:
-            self.add_event(events.OutOfStock(line.sku))
+            self.add_event(OutOfStock(line.sku))
             return None
             # raise OutOfStock(f"Out of stock for sku {line.sku}")
 
@@ -37,20 +37,13 @@ class Product(Aggregate[Batch]):
             batch.allocate(line)
             return batch.reference
         except StopIteration:
-            self.add_event(events.OutOfStock(line.sku))
+            self.add_event(OutOfStock(line.sku))
             return None
 
-    def change_quantity(self, batchref: str, new_qty: int) -> None:
+    def change_batch_quantity(self, ref: str, new_qty: int) -> None:
         """배치에 할당된 주문선을 수량만큼 해제합니다."""
-        # TODO: Fix implementation
-        """
-        with uow:
-            product = uow.items.get(reference=batchref)
-            if not product:
-                raise ReferenceNotFound()
-
-            batch.change_purchased_quantity(new_qty)
-            while batch.available_quantity < 0:
-                batch.deallocate_one()
-            uow.commit()
-        """
+        batch = next(b for b in self.items if b.reference == ref)
+        batch._purchased_quantity = new_qty
+        while batch.available_quantity < 0:
+            line = batch.deallocate_one()
+            self.events.append(AllocationRequired(line.orderid, line.sku, line.qty))

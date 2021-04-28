@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from fastmsa import FastMSA
+from fastmsa.event import EventHandlerMap
 from fastmsa.orm import SessionMaker, clear_mappers, init_db, start_mappers
 from fastmsa.repo import SqlAlchemyRepository
 from fastmsa.uow import AbstractUnitOfWork, SqlAlchemyUnitOfWork
@@ -43,10 +44,16 @@ def session() -> Session:
 
 
 @pytest.fixture
-def msa(session):
+def handlers():
+    yield init_event_handlers()
+
+
+@pytest.fixture
+def msa(session, handlers):
     from tests.app.routes import fastapi  # noqa
 
-    init_event_handlers()
+    assert handlers, "Empty handlers!"
+
     return Config(__name__)
 
 
@@ -74,5 +81,8 @@ def get_uow(get_session: SessionMaker) -> Callable[[], AbstractUnitOfWork[Produc
     return lambda: SqlAlchemyUnitOfWork(Product, get_session)
 
 
-def init_event_handlers():
+def init_event_handlers() -> EventHandlerMap:
     import tests.app.handlers.batch  # noqa
+    from fastmsa.event import HANDLERS, EventHandlerMap
+
+    return HANDLERS

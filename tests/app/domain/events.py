@@ -6,7 +6,7 @@ from fastmsa.core import Event
 
 
 @dataclass
-class OutOfStock(Event):
+class OutOfStock(Event, Exception):
     sku: str
 
 
@@ -22,4 +22,10 @@ class BatchCreated(Event):
 class AllocationRequired(Event):
     orderid: str
     sku: str
+    qty: int
+
+
+@dataclass
+class BatchQuantityChanged(Event):
+    ref: str
     qty: int
