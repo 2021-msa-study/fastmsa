@@ -40,7 +40,7 @@ class MessageBus:
     ):
         self.event_handlers, self.command_handlers = handlers
 
-    def handle(self, message: Message, uow: AbstractUnitOfWork[T]):  # type: ignore
+    def handle(self, message: Message, uow: AbstractUnitOfWork):  # type: ignore
         queue = [message]
         results = []
 

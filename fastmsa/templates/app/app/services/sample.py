@@ -13,14 +13,14 @@ def add_item(
     uuid: str,
     product_id: str,
     created: Optional[datetime],
-    uow: AbstractUnitOfWork[Product],
+    uow: AbstractUnitOfWork,
 ) -> None:
     """Item을 추가합니다."""
     with uow:
-        product = uow.repo.get(id)
+        product = uow[Product].get(id)
 
         if not product:
             product = Product(id, items=[])
-            uow.repo.add(product)
+            uow[Product].add(product)
         product.items.append(Item(id, uuid, product_id, created or datetime.now()))
         uow.commit()

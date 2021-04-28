@@ -71,7 +71,7 @@ def cleanup_uow(get_session):
         _batch_ref = ref
         _sku = sku
         delete_product_batch_and_allocation(session, sku, _batch_ref)
-        return SqlAlchemyUnitOfWork(Product, lambda: session)
+        return SqlAlchemyUnitOfWork([Product], lambda: session)
 
     yield wrapper
 
@@ -97,10 +97,10 @@ def test_uow_can_retrieve_a_batch_and_allocate_to_it(
 ):
     ref, sku = random_batchref(), random_sku()
     session = session_with_product(ref, sku, 100, None)
-    uow = SqlAlchemyUnitOfWork(Product, get_session)
+    uow = SqlAlchemyUnitOfWork([Product], get_session)
 
     with uow:
-        product = uow.repo.get(sku)
+        product = uow[Product].get(sku)
         if product:
             line = OrderLine("o1", sku, 10)
             product.allocate(line)

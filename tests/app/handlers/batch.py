@@ -5,7 +5,7 @@ from tests.app.domain import commands, events
 from tests.app.domain.aggregates import Product
 from tests.app.domain.models import Batch, OrderLine
 
-ProductUnitOfWork = AbstractUnitOfWork[Product]
+ProductUnitOfWork = AbstractUnitOfWork
 
 
 class InvalidSku(Exception):
@@ -27,11 +27,11 @@ def send_out_of_stock_notification(event: events.OutOfStock):
 def add_batch(e: commands.CreateBatch, uow: ProductUnitOfWork):
     """UOW를 이용해 배치를 추가합니다."""
     with uow:
-        product = uow.repo.get(e.sku)
+        product = uow[Product].get(e.sku)
 
         if not product:
             product = Product(e.sku, items=[])
-            uow.repo.add(product)
+            uow[Product].add(product)
         product.items.append(Batch(e.ref, e.sku, e.qty, e.eta))
         uow.commit()
 
@@ -45,7 +45,7 @@ def allocate(e: commands.Allocate, uow: ProductUnitOfWork):
     """
     line = OrderLine(e.orderid, e.sku, e.qty)
     with uow:
-        product = uow.repo.get(line.sku)
+        product = uow[Product].get(line.sku)
         if product is None:
             raise InvalidSku(f"Invalid sku {line.sku}")
         batchref = product.allocate(line)
@@ -56,6 +56,6 @@ def allocate(e: commands.Allocate, uow: ProductUnitOfWork):
 @on_command(commands.ChangeBatchQuantity)
 def change_batch_quantity(e: commands.ChangeBatchQuantity, uow: ProductUnitOfWork):
     with uow:
-        product = uow.repo.get(by_batchref=e.ref)
+        product = uow[Product].get(by_batchref=e.ref)
         product.change_batch_quantity(ref=e.ref, new_qty=e.qty)
         uow.commit()
