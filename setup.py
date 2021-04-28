@@ -45,6 +45,7 @@ setup(
         "uvicorn",
         "jinja2",
         "colorama",
+        "tenacity",
     ],
     classifiers=[
         "Development Status :: 3 - Alpha",
