@@ -6,7 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from fastmsa.api import app
-from fastmsa.core import FastMSA
+from fastmsa.config import FastMSA
 from tests import random_batchref, random_orderid, random_sku
 
 

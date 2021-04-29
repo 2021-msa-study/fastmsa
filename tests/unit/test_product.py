@@ -1,10 +1,10 @@
-from datetime import date, timedelta
+from datetime import datetime, timedelta
 
 from tests.app.domain import events
 from tests.app.domain.aggregates import Product
 from tests.app.domain.models import Batch, OrderLine
 
-today = date.today()
+today = datetime.today()
 tomorrow = today + timedelta(days=1)
 later = tomorrow + timedelta(days=10)
 

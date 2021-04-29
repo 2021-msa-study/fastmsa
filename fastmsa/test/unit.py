@@ -11,31 +11,21 @@ Low Gear(고속 기어) 테스트입니다.
 """
 from typing import Any, Callable, Optional, Type, TypeVar
 
-from fastmsa.core import Command, Event, FastMSA, FastMSAError, Message
-from fastmsa.domain import Aggregate, Entity
-from fastmsa.event import MessageBus, MessageHandlers
-from fastmsa.orm import AbstractSession
-from fastmsa.repo import AbstractRepository
-from fastmsa.uow import AbstractUnitOfWork, AggregateReposMap
+from fastmsa.core import (
+    AbstractRepository,
+    AbstractSession,
+    AbstractUnitOfWork,
+    Aggregate,
+    AggregateReposMap,
+    Entity,
+    Event,
+    FastMSAError,
+    Message,
+)
+from fastmsa.event import AnyMessageType, MessageBus, MessageHandlerMap
 
 E = TypeVar("E", bound=Entity)
 A = TypeVar("A", bound=Aggregate)
-
-
-class FakeConfig(FastMSA):
-    """단위 테스트를 위한 Fake 설정."""
-
-    def __init__(self):
-        super().__init__(__name__)
-
-    def get_db_url(self):
-        return "sqlite://"
-
-    def init_mappers(self):
-        pass
-
-    def validate(self):
-        pass
 
 
 class FakeRepository(AbstractRepository[E]):
@@ -119,14 +109,14 @@ class FakeUnitOfWork(AbstractUnitOfWork):
 
 class FakeMessageBus(MessageBus):
     def __init__(
-        self, handlers: MessageHandlers, fake_messages: set[Type[Message]] = None
+        self, handlers: MessageHandlerMap, fake_messages: set[Type[Message]] = None
     ):
         self.message_published = list[Message]()
 
         # Fake 이벤트라면 이벤트를 실행하지 않고
         # events_published 에 추가하는 Fake 핸들러를 만들어 리턴한다.
-        def get_fake_event_handler(
-            e: Type[Event], handlers: list[Callable]
+        def get_fake_handler(
+            e: AnyMessageType, handlers: list[Callable]
         ) -> list[Callable]:
             if fake_messages and e in fake_messages:
 
@@ -136,20 +126,7 @@ class FakeMessageBus(MessageBus):
                 return [fake_handler]
             return handlers
 
-        def get_fake_command_handler(e: Type[Command], handler: Callable) -> Callable:
-            if fake_messages and e in fake_messages:
+        self.handlers = handlers
+        self.fake_handlers = {k: get_fake_handler(k, v) for k, v in handlers.items()}
 
-                def fake_handler(e: Command, uow: Any = None):
-                    self.message_published.append(e)
-
-                return fake_handler
-            return handler
-
-        event_handlers, command_handlers = handlers
-        self.fake_event_handlers = {
-            k: get_fake_event_handler(k, v) for k, v in event_handlers.items()
-        }
-        self.fake_command_handlers = {
-            k: get_fake_command_handler(k, v) for k, v in command_handlers.items()
-        }
-        super().__init__((self.fake_event_handlers, self.fake_command_handlers))
+        super().__init__(self.fake_handlers)

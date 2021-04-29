@@ -1,8 +1,8 @@
-from datetime import date
+from datetime import datetime
 
 import pytest
 
-from fastmsa.event import MessageHandlers, messagebus
+from fastmsa.event import MessageHandlerMap, messagebus
 from fastmsa.test.unit import FakeMessageBus, FakeRepository, FakeUnitOfWork
 from tests.app.domain import commands, events
 from tests.app.domain.aggregates import Product
@@ -22,7 +22,7 @@ def repo():
 
 
 @pytest.fixture
-def uow(handlers: MessageHandlers, repo: FakeProductRepository):
+def uow(handlers: MessageHandlerMap, repo: FakeProductRepository):
     return FakeUnitOfWork(repos={Product: repo})
 
 
@@ -60,7 +60,7 @@ class TestAllocate:
         assert uow.committed
 
     def test_sends_email_on_out_of_stock_error(
-        self, uow: FakeUnitOfWork, handlers: MessageHandlers
+        self, uow: FakeUnitOfWork, handlers: MessageHandlerMap
     ):
         messagebus = FakeMessageBus(handlers, fake_messages={events.OutOfStock})
         messagebus.handle(commands.CreateBatch("b1", "POPULAR-CURTAINS", 9, None), uow)
@@ -85,7 +85,7 @@ class TestChangeBatchQuantity:
     def test_reallocates_if_necessary(self, uow: FakeUnitOfWork):
         message_history = [
             commands.CreateBatch("batch1", "INDIFFERENT-TABLE", 50, None),
-            commands.CreateBatch("batch2", "INDIFFERENT-TABLE", 50, date.today()),
+            commands.CreateBatch("batch2", "INDIFFERENT-TABLE", 50, datetime.today()),
             commands.Allocate("order1", "INDIFFERENT-TABLE", 20),
             commands.Allocate("order2", "INDIFFERENT-TABLE", 20),
         ]

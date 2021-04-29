@@ -1,5 +1,5 @@
 """Batch 서비스."""
-from datetime import date
+from datetime import datetime
 from typing import Optional, Sequence
 
 from fastmsa.uow import AbstractUnitOfWork
@@ -25,7 +25,7 @@ def is_valid_sku(sku: str, batches: Sequence[Batch]) -> bool:
 
 
 def add_batch(
-    ref: str, sku: str, qty: int, eta: Optional[date], uow: AbstractUnitOfWork
+    ref: str, sku: str, qty: int, eta: Optional[datetime], uow: AbstractUnitOfWork
 ) -> None:
     """UOW를 이용해 배치를 추가합니다."""
     with uow:

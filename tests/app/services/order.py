@@ -14,8 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import cast
 
-from fastmsa.core import Command, Event
-from fastmsa.domain import Aggregate
+from fastmsa.core import Aggregate, Command, Event
 from fastmsa.event import on_command, on_event
 from fastmsa.uow import AbstractUnitOfWork
 from tests.app.adapters import email

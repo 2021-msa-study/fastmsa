@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import datetime
 from typing import Optional
 
 from tests.app.domain.events import OutOfStock
@@ -40,7 +40,7 @@ class Batch:
         ref: str,
         sku: str,
         qty: int,
-        eta: Optional[date] = None,
+        eta: Optional[datetime] = None,
         id: Optional[int] = None,
     ):  # pylint: disable=redefined-builtin
         """기본 생성자.

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import datetime
 from typing import Optional
 
 from fastmsa.core import Command
@@ -17,7 +17,7 @@ class CreateBatch(Command):
     ref: str
     sku: str
     qty: int
-    eta: Optional[date] = None
+    eta: Optional[datetime] = None
 
 
 @dataclass

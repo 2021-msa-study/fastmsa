@@ -1,1 +1,1 @@
-from .core import FastMSA  # noqa
+from .config import FastMSA  # noqa
