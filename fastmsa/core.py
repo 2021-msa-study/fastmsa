@@ -3,14 +3,50 @@ from __future__ import annotations
 import importlib
 import sys
 from pathlib import Path
-from typing import Any, Optional, Type, cast
+from typing import Any, Optional, Type, Union, cast
 
 import uvicorn
 from sqlalchemy.pool import Pool, StaticPool
 
 
 class Event:
+    """이벤트 객체.
+
+    Events are broadcast by an actor to all interested listeners. When we
+    publish BatchQuantityChanged, we don’t know who’s going to pick it up.
+    We name events with past-tense verb phrases like “order allocated to stock”
+    or “shipment delayed.”
+
+    We often use events to spread the knowledge about successful commands.
+
+    Events capture facts about things that happened in the past. Since we don’t
+    know who’s handling an event, senders should not care whether the receivers
+    succeeded or failed.
+    """
+
     pass
+
+
+class Command:
+    """Command 객체.
+
+    Commands are a type of message—instructions sent by one part of a system
+    to another. We usually represent commands with dumb data structures and
+    can handle them in much the same way as events
+
+    Commands are sent by one actor to another specific actor with the expectation
+    that a particular thing will happen as a result. When we post a form to an
+    API handler, we are sending a command. We name commands with imperative mood
+    verb phrases like “allocate stock” or “delay shipment.”
+
+    Commands capture intent. They express our wish for the system to do something.
+    As a result, when they fail, the sender needs to receive error information.
+    """
+
+    pass
+
+
+Message = Union[Command, Event]
 
 
 class FastMSA:

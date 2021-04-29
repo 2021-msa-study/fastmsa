@@ -1,7 +1,7 @@
-from fastmsa.event import on_event
+from fastmsa.event import on_command, on_event
 from fastmsa.uow import AbstractUnitOfWork
 from tests.app.adapters import email
-from tests.app.domain import events
+from tests.app.domain import commands, events
 from tests.app.domain.aggregates import Product
 from tests.app.domain.models import Batch, OrderLine
 
@@ -23,8 +23,8 @@ def send_out_of_stock_notification(event: events.OutOfStock):
     )
 
 
-@on_event(events.BatchCreated)
-def add_batch(e: events.BatchCreated, uow: ProductUnitOfWork):
+@on_command(commands.CreateBatch)
+def add_batch(e: commands.CreateBatch, uow: ProductUnitOfWork):
     """UOW를 이용해 배치를 추가합니다."""
     with uow:
         product = uow.repo.get(e.sku)
@@ -36,8 +36,8 @@ def add_batch(e: events.BatchCreated, uow: ProductUnitOfWork):
         uow.commit()
 
 
-@on_event(events.AllocationRequired)
-def allocate(e: events.AllocationRequired, uow: ProductUnitOfWork):
+@on_command(commands.Allocate)
+def allocate(e: commands.Allocate, uow: ProductUnitOfWork):
     """ETA가 가장 빠른 배치를 찾아 :class:`.OrderLine` 을 할당합니다.
 
     Events:
@@ -53,8 +53,8 @@ def allocate(e: events.AllocationRequired, uow: ProductUnitOfWork):
     return batchref
 
 
-@on_event(events.BatchQuantityChanged)
-def change_batch_quantity(e: events.BatchQuantityChanged, uow: ProductUnitOfWork):
+@on_command(commands.ChangeBatchQuantity)
+def change_batch_quantity(e: commands.ChangeBatchQuantity, uow: ProductUnitOfWork):
     with uow:
         product = uow.repo.get(by_batchref=e.ref)
         product.change_batch_quantity(ref=e.ref, new_qty=e.qty)

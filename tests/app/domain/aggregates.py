@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional
 
 from fastmsa.domain import Aggregate
-from tests.app.domain.events import AllocationRequired, OutOfStock
+from tests.app.domain import commands, events
 from tests.app.domain.models import Batch, OrderLine
 
 
@@ -21,9 +21,8 @@ class Product(Aggregate[Batch]):
             self.version_number += 1
             return batch.reference
         except StopIteration:
-            self.add_event(OutOfStock(line.sku))
+            self.add_message(events.OutOfStock(line.sku))
             return None
-            # raise OutOfStock(f"Out of stock for sku {line.sku}")
 
     def reallocate(self, line: OrderLine) -> Optional[str]:
         """기존 Sku의 주문선을 할당 해재 후 새로운 `line`을 할당합니다.
@@ -37,7 +36,7 @@ class Product(Aggregate[Batch]):
             batch.allocate(line)
             return batch.reference
         except StopIteration:
-            self.add_event(OutOfStock(line.sku))
+            self.add_message(events.OutOfStock(line.sku))
             return None
 
     def change_batch_quantity(self, ref: str, new_qty: int) -> None:
@@ -46,4 +45,4 @@ class Product(Aggregate[Batch]):
         batch._purchased_quantity = new_qty
         while batch.available_quantity < 0:
             line = batch.deallocate_one()
-            self.events.append(AllocationRequired(line.orderid, line.sku, line.qty))
+            self.messages.append(commands.Allocate(line.orderid, line.sku, line.qty))

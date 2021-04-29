@@ -1,6 +1,6 @@
 from typing import Any, Generic, Protocol, TypeVar
 
-from fastmsa.core import Event
+from fastmsa.core import Message
 
 
 class Entity(Protocol):
@@ -16,16 +16,16 @@ class Aggregate(Entity, Generic[E]):
     """Aggregate 프로토콜 명세."""
 
     items: list[E]
-    _events: list[Event]
+    _messages: list[Message]
 
-    def add_event(self, e: Event):
-        if not hasattr(self, "_events"):
-            self._events = list[Event]()
+    def add_message(self, e: Message):
+        if not hasattr(self, "_messages"):
+            self._messages = list[Message]()
 
-        self._events.append(e)
+        self._messages.append(e)
 
     @property
-    def events(self) -> list[Event]:
-        if not hasattr(self, "_events"):
-            self._events = list[Event]()
-        return self._events
+    def messages(self) -> list[Message]:
+        if not hasattr(self, "_messages"):
+            self._messages = list[Message]()
+        return self._messages
