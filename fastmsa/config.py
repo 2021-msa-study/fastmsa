@@ -11,7 +11,8 @@ from typing import Any, Optional, Type, cast
 
 from sqlalchemy.pool import Pool, StaticPool
 
-from fastmsa.core.models import AbstractFastMSA
+from fastmsa.core.models import AbstractFastMSA, AbstractMessageBroker
+from fastmsa.redis import RedisClient, RedisConnectInfo
 
 
 @dataclass
@@ -46,6 +47,7 @@ class FastMSA(AbstractFastMSA):
     """외부 메세지 브로커를 사용할지 여부."""
     is_implicit_name: bool = True
     """setup.cfg 없이 암시적으로 부여된 이름인지 여부."""
+    _redis: Optional[RedisClient] = None
 
     @staticmethod
     def load_from_config(path=Path(".")) -> FastMSA:
@@ -124,6 +126,22 @@ class FastMSA(AbstractFastMSA):
         """
 
         raise NotImplementedError
+
+    @property
+    def message_broker(self) -> Optional[AbstractMessageBroker]:
+        if not self.allow_external_event:
+            return None
+        else:
+            if not self._redis:
+                self._redis = RedisClient(self.redis_conn_info)
+            return self._redis
+
+    @property
+    def redis_conn_info(self) -> RedisConnectInfo:
+        return RedisConnectInfo(
+            host="localhost",
+            port=6379,
+        )
 
     def get_db_connect_args(self) -> dict[str, Any]:
         """Get db connection arguments for SQLAlchemy's engine creation.

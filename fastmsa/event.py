@@ -110,8 +110,8 @@ class MessageBus:
     ):
         """핸들러의 파라메터를 보고 적절한 의존성을 주입하여 핸들러를 호출합니다.
 
-        예를 들어 `def a_handler(uow, ..)` 와 같은 핸들러가 있을 경우 `uow`에
-        대한 의존성을 주입합니다.
+        예를 들어 `def a_handler(uow, msgtbroker)` 와 같은 핸들러가 있을 경우 `uow` 나
+        `msgbroker` 같은 이름은 외부 의존성을 가리킵니다.
         """
         params = self.params_cache.get(type(message))
         if not params:
@@ -120,6 +120,9 @@ class MessageBus:
         args = {
             "uow": uow if "uow" in params else False,
             "msa": self.msa if "msa" in params else False,
+            "msgbroker": self.msa and self.msa.message_broker
+            if "msgbroker" in params
+            else False,
         }
 
         missing = {k: v for k, v in args.items() if v is None}

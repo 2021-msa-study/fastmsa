@@ -1,6 +1,9 @@
 """Command line script for FastMSA."""
+import asyncio
 import glob
 import importlib
+import json
+import logging
 import os
 import sys
 from argparse import ArgumentParser, Namespace, RawTextHelpFormatter
@@ -21,6 +24,7 @@ from fastmsa.config import FastMSA
 from fastmsa.core import FastMSAError
 from fastmsa.event import MessageHandlerMap
 from fastmsa.logging import get_logger
+from fastmsa.redis import AsyncRedisClient
 from fastmsa.utils import cwd, scan_resource_dir
 from tests.app.config import SqlAlchemyProductRepository
 
@@ -255,6 +259,42 @@ class FastMSACommand:
 
             repo.session.commit()
 
+    def redis(self):
+        """Redis Event Consumer를 실행합니다."""
+        from aioredis import Channel, Redis
+
+        from fastmsa.event import messagebus
+        from tests.app.domain import commands
+
+        self.banner("Launching Redis Consumer", icon="📣")
+        self.init_app(init_routes=False)
+        self.msa.allow_external_event = True
+
+        logger.setLevel(logging.DEBUG)
+
+        async def handle_message(redis: Redis, ch: Channel, msg: Any):
+            channel_name = ch.name.decode()
+            data = json.loads(msg)
+            logger.info("handle mesage from channel %s: %r", channel_name, data)
+            data = json.loads(msg)
+            if channel_name == "change_batch_quantity":
+                cmd = commands.ChangeBatchQuantity(
+                    ref=data["batchref"], qty=data["qty"]
+                )
+                messagebus.handle(cmd)
+
+        async def redis_main():
+            redis = AsyncRedisClient(self.msa.redis_conn_info, handle_message)
+            if not redis:
+                logger.error("Failed to initialize redis client!")
+                sys.exit(1)
+
+            listener = await redis.subscribe_to("change_batch_quantity")
+            await listener.listen()
+            await redis.wait_closed()
+
+        asyncio.run(redis_main())
+
     def load_domain(self) -> list[type]:
         """도메인 클래스를 로드합니다.
 
@@ -372,6 +412,7 @@ class FastMSACommandParser:
             self._cmd.info,
             self._cmd.init,
             self._cmd.run,
+            self._cmd.redis,
             self._cmd.orm,
         ]:
             command = handler.__name__

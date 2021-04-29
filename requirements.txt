@@ -4,6 +4,7 @@ sqlalchemy
 requests
 psycopg2-binary
 tenacity
+redis
 
 jinja2
 

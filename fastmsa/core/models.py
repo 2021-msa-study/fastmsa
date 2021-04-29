@@ -101,6 +101,14 @@ class AbstractSubscriber(Protocol):
         ...
 
 
+class AbstractMessageBroker(Protocol):
+    def subscribe_to(self, *channels: str) -> AbstractSubscriber:
+        ...
+
+    def publish_message(self, channel: str, message: Any):
+        ...
+
+
 class AbstractAPI(Protocol):
     def get(self):
         ...
@@ -174,6 +182,10 @@ class AbstractFastMSA(abc.ABC):
 
     @property
     def uow(self) -> AbstractUnitOfWork:
+        raise NotImplemented
+
+    @property
+    def message_broker(self) -> Optional[AbstractMessageBroker]:
         raise NotImplemented
 
     def init_fastapi(self):
