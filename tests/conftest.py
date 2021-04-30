@@ -72,9 +72,9 @@ def get_session() -> SessionMaker:
 
 
 def init_handlers() -> MessageHandlerMap:
-    import tests.app.handlers.batch  # noqa
     from fastmsa.event import MESSAGE_HANDLERS, messagebus
     from tests.app.adapters.repos import SqlAlchemyProductRepository
+    from tests.app.handlers import batch, external  # noqa
 
     messagebus.uow = SqlAlchemyUnitOfWork(
         [Product],

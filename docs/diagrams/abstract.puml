@@ -1,0 +1,112 @@
+@startuml "Dependency Architecture Overview"
+
+hide empty members
+skinparam defaultFontName "Segoe UI"
+skinparam ClassAttributeIconSize 0
+skinparam PackageFontSize 11
+allow_mixing
+
+Actor User
+Database DB
+
+package fastmsa {
+    package core {
+        abstract class AbstractMSA {
+            + name: str
+            + title: str
+            ..
+            + api: AbstractAPI
+            + uow: AbstractUnitOfWork
+            + broker: AbstractMessageBroker
+        }
+
+        abstract class AbstractAPI {
+            + post(...)
+            + get(...)
+            + put(...)
+            + delete(...)
+        }
+
+        abstract class AbstractUnitOfWork
+
+
+        AbstractMSA "uow" --> AbstractUnitOfWork
+        AbstractMSA "broker" --> AbstractMessageBroker
+        AbstractMSA "api" --> AbstractAPI
+        
+        AbstractRepository <- AbstractUnitOfWork
+
+        interface AbstractMessageBroker
+        interface AbstractPubsubClient
+    }
+
+    abstract class FastMSA {
+        + db_url: str
+        + module_name: str
+    }
+
+    AbstractMSA <|-[thickness=2]- FastMSA
+    AbstractUnitOfWork <|-- SqlAlchemyUnitOfWork
+    AbstractRepository <|-- SqlAlchemyRepository
+    AbstractMessageBroker <|-- RedisMessageBroker
+    AbstractAPI <|-- FastAPIAdapter
+    SqlAlchemyRepository <-o SqlAlchemyUnitOfWork  
+
+    class RedisMessageBroker <<optional>> {
+        client: AbstractPubsubClient
+    }
+    AbstractPubsubClient <-- RedisMessageBroker
+
+    FastAPIAdapter <.. FastMSA
+    RedisMessageBroker <.. FastMSA
+    SqlAlchemyUnitOfWork <.. FastMSA
+
+    class FastMSACommand <<bootstrapper>> {
+    }
+
+    class FastMSACommandParser
+}
+
+package <<site-packages>> {
+    package fastapi {}
+    package sqlalchemy {}
+    package redis {}
+
+    fastapi -[hidden]-> sqlalchemy
+}
+
+SqlAlchemyUnitOfWork -[#333,dotted]--> sqlalchemy
+FastAPIAdapter -[#333,dotted]--> "imports\n\n" fastapi
+RedisMessageBroker -[#333,dotted]-->  redis
+
+card "User's App" as userapp  {
+
+    package app.config {
+        class Config
+    }
+    
+    file "setup.cfg" as f
+    folder app {
+        package domain
+        package handlers
+        package routes
+        package adapters
+    }
+    
+    f <-[hidden] app.config
+    app.config -[hidden]-> app
+}
+
+FastMSA <|-[thickness=2]- Config
+
+userapp <.[thickness=3]. User: implements
+FastMSACommandParser <-[thickness=3]- User: "executes:\n<b>msa run</b>"
+FastMSACommandParser -> FastMSACommand
+FastMSACommand -> FastMSA
+FastMSACommand ..> f: "1) reads"
+FastMSACommand ..> userapp: "2) import\nmodules"
+FastMSACommand ..> DB: "3) connects\nto"
+
+core <--- app: depends on\nabstraction
+
+@endul

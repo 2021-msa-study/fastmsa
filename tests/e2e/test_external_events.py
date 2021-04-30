@@ -1,66 +1,84 @@
+import asyncio
 import json
 from datetime import datetime
+from typing import cast
 
 import pytest
-from tenacity import Retrying, stop_after_delay
+from httpx import AsyncClient
 
-from fastmsa.api import APIClient
+from fastmsa.api import AsyncAPIClient
 from fastmsa.config import FastMSA
-from fastmsa.redis import RedisClient
-from fastmsa.test import TestClient
+from fastmsa.redis import AsyncRedisClient, RedisMessageBroker
 from tests import random_batchref, random_orderid, random_sku
+from tests.app.domain import commands, events
+
+
+@pytest.fixture(scope="module")
+def event_loop():
+    yield asyncio.get_event_loop()
 
 
 @pytest.fixture
-def api_client(msa: FastMSA) -> APIClient:
-    testclient = TestClient(msa.api)
-    return APIClient(testclient)
+@pytest.mark.asyncio
+async def api_client(msa: FastMSA) -> AsyncAPIClient:
+    testclient = AsyncClient(app=msa.api, base_url="http://test")
+
+    yield AsyncAPIClient(testclient)
+
+    await testclient.aclose()
 
 
 @pytest.fixture
 def redis_client(msa: FastMSA):
     msa.allow_external_event = True
 
-    yield RedisClient(msa.redis_conn_info)
+    yield AsyncRedisClient(msa.redis_conn_info)
 
     msa.allow_external_event = False
 
 
-def test_change_batch_quantity_leading_to_reallocation(
-    api_client: APIClient,
-    redis_client: RedisClient,
+@pytest.mark.asyncio
+async def test_change_batch_quantity_leading_to_reallocation(
+    api_client: AsyncAPIClient,
+    redis_client: AsyncRedisClient,
     msa: FastMSA,
 ):
     msa.allow_external_event = True
-    # start with two batches and an order allocated to one of them
-    orderid, sku = random_orderid(), random_sku()
-    earlier_batch, later_batch = random_batchref(1), random_batchref(2)
-    api_client.post_to_add_batch(
-        earlier_batch, sku, qty=10, eta=datetime(2021, 4, 26).isoformat()
-    )
-    api_client.post_to_add_batch(
-        later_batch, sku, qty=10, eta=datetime(2021, 4, 27).isoformat()
-    )
-    response = api_client.post_to_allocate(orderid, sku, 10)
-    assert response.json()["batchref"] == earlier_batch
+    listener = await msa.broker.listener
+    tasks: list[asyncio.Task] = await listener.listen()
 
-    # change quantity on allocated batch so it's less than our order
-    redis_client.publish_message(
-        "change_batch_quantity", {"batchref": earlier_batch, "qty": 5}
-    )
-    redis = redis_client.redis
-    pubsub = redis.pubsub(ignore_subscribe_messages=True)
-    pubsub.subscribe("line_allocated")
+    async def test():
+        # start with two batches and an order allocated to one of them
+        orderid, sku = random_orderid(), random_sku()
+        earlier_batch, later_batch = random_batchref(1), random_batchref(2)
+        await api_client.post_to_add_batch(
+            earlier_batch, sku, qty=10, eta=datetime(2021, 4, 26).isoformat()
+        )
+        await api_client.post_to_add_batch(
+            later_batch, sku, qty=10, eta=datetime(2021, 4, 27).isoformat()
+        )
+        response = await api_client.post_to_allocate(orderid, sku, 10)
+        assert response.json()["batchref"] == earlier_batch
 
-    # wait until we see a message saying the order has been reallocated
-    messages = []
-    for attempt in Retrying(stop=stop_after_delay(3), reraise=True):
-        with attempt:
-            message = pubsub.get_message(timeout=3)
-            if message:
-                messages.append(message)
-                print(messages)
-            assert messages
-            data = json.loads(messages[-1]["data"])
+        await redis_client.publish_message_async(
+            commands.ChangeBatchQuantity, {"batchref": earlier_batch, "qty": 5}
+        )
+
+        await redis_client.subscribe_to(events.Allocated)
+        channel = redis_client.channels[-1]
+
+        async for msg in channel.iter(encoding="utf8"):
+            data = json.loads(msg)
             assert data["orderid"] == orderid
             assert data["batchref"] == later_batch
+            break
+
+    await test()
+
+    for task in tasks:
+        task.cancel()
+
+    await redis_client.wait_closed()
+
+    broker = cast(RedisMessageBroker, msa.broker)
+    await broker.aclient.wait_closed()

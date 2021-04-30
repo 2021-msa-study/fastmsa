@@ -1,21 +1,25 @@
 from __future__ import annotations
 
 import abc
+import asyncio
 from contextlib import AbstractContextManager, ContextDecorator
 from dataclasses import dataclass
+from inspect import Parameter, signature
 from pathlib import Path
 from typing import (
     Any,
+    Callable,
     Generator,
     Generic,
     List,
     Literal,
+    Mapping,
     Optional,
     Protocol,
     Sequence,
     Type,
     TypeVar,
-    Union,
+    Union
 )
 
 from fastmsa.core.errors import FastMSAError
@@ -51,8 +55,6 @@ class Aggregate(Entity, Generic[E]):
 
 T = TypeVar("T")
 A = TypeVar("A", bound=Aggregate)
-
-
 E = TypeVar("E", bound=Entity)
 
 
@@ -71,7 +73,6 @@ class Event:
     succeeded or failed.
     """
 
-    pass
 
 
 class Command:
@@ -90,22 +91,27 @@ class Command:
     As a result, when they fail, the sender needs to receive error information.
     """
 
-    pass
 
 
 Message = Union[Command, Event]
 
+AnyMessageType = Union[Type[Event], Type[Command]]
+MessageHandlerMap = dict[AnyMessageType, list[Callable]]
 
-class AbstractSubscriber(Protocol):
+
+class AbstractPubsub(Protocol):
     def listen(self) -> Generator[Any, None, None]:
         ...
 
-
-class AbstractMessageBroker(Protocol):
-    def subscribe_to(self, *channels: str) -> AbstractSubscriber:
+    def get_message(self, timeout: Optional[int] = None) -> Optional[dict[str, Any]]:
         ...
 
-    def publish_message(self, channel: str, message: Any):
+
+class AbstractPubsubClient(Protocol):
+    def subscribe_to(self, *channels: Union[str, Type]) -> AbstractPubsub:
+        ...
+
+    def publish_message(self, channel: Union[str, Type], message: Any):
         ...
 
 
@@ -121,6 +127,36 @@ class AbstractAPI(Protocol):
 
     def delete(self):
         ...
+
+
+class AbstractMessageHandler(Protocol):
+    handlers: MessageHandlerMap = {}  # Dependency Injection
+    params_cache: dict[Callable, Mapping[str, Parameter]] = {}
+    """핸들러 파라메터 캐시. 이름이 따른 Dependency Injection을 위해 사용합니다."""
+    msa: Optional[AbstractFastMSA] = None  # Dependency Injection
+    uow: Optional[AbstractUnitOfWork] = None  # Dependency Injection
+    pubsub: Optional[AbstractPubsubClient] = None  # Dependency Injection
+
+    def register(self, etype: AnyMessageType, func: Callable):
+        self.params_cache[func] = signature(func).parameters
+        self.handlers[etype].append(func)
+
+
+class AbstractChannelListener(Protocol):
+    async def listen(self, *args, **kwargs) -> list[asyncio.Task]:
+        ...
+
+
+class AbstractMessageBroker(AbstractMessageHandler):
+
+    client: AbstractPubsubClient
+
+    @property
+    async def listener(self) -> AbstractChannelListener:
+        raise NotImplemented
+
+    async def main(self, wait_until_close=True):
+        raise NotImplemented
 
 
 @dataclass
@@ -185,7 +221,7 @@ class AbstractFastMSA(abc.ABC):
         raise NotImplemented
 
     @property
-    def message_broker(self) -> Optional[AbstractMessageBroker]:
+    def broker(self) -> Optional[AbstractMessageBroker]:
         raise NotImplemented
 
     def init_fastapi(self):
