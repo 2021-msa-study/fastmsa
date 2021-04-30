@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import datetime
 
 from sqlalchemy.orm import Session
 
@@ -36,11 +36,11 @@ def test_retrieving_batches(session: Session) -> None:
     )
     session.execute(
         "INSERT INTO batch (reference, sku, _purchased_quantity, eta)"
-        " VALUES ('batch2', 'sku2', 200, '2021-04-11')"
+        " VALUES ('batch2', 'sku2', 200, '2021-04-11 00:00:00')"
     )
     expected = [
         models.Batch("batch1", "sku1", 100, eta=None),
-        models.Batch("batch2", "sku2", 200, eta=date(2011, 4, 11)),
+        models.Batch("batch2", "sku2", 200, eta=datetime(2011, 4, 11)),
     ]
 
     assert session.query(models.Batch).all() == expected

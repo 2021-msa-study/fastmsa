@@ -4,8 +4,12 @@ from sqlalchemy.orm import Session
 from fastmsa.repo import SqlAlchemyRepository
 from tests.app.domain.aggregates import Product
 from tests.app.domain.models import Batch, OrderLine
-from tests.integration import (insert_allocation, insert_batch,
-                               insert_order_line, insert_product)
+from tests.integration import (
+    insert_allocation,
+    insert_batch,
+    insert_order_line,
+    insert_product,
+)
 
 
 def test_repository_can_save_a_batch(session: Session) -> None:

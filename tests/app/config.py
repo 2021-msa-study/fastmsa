@@ -1,8 +1,12 @@
 """FastMSA App Configuration."""
 
+
 import os
 
-from fastmsa.core import FastMSA
+from fastmsa.config import FastMSA
+from fastmsa.uow import RepoMakerDict
+from tests.app.adapters.repos import SqlAlchemyProductRepository
+from tests.app.domain.aggregates import Product
 
 
 class Config(FastMSA):
@@ -12,6 +16,17 @@ class Config(FastMSA):
     """
 
     title = "Test APP"
+
+    @property
+    def uow(self):
+        from fastmsa.uow import SqlAlchemyUnitOfWork
+        from tests.app.domain.aggregates import Product
+
+        repo_maker: RepoMakerDict = {
+            Product: lambda session: SqlAlchemyProductRepository(Product, session)
+        }
+
+        return SqlAlchemyUnitOfWork([Product], repo_maker=repo_maker)
 
     def get_db_url(self) -> str:
         """DB 접속 정보."""

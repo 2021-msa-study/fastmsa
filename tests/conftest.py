@@ -9,11 +9,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from fastmsa import FastMSA
-from fastmsa.event import MessageHandlers
+from fastmsa.event import MessageHandlerMap
 from fastmsa.orm import SessionMaker, clear_mappers, init_db, start_mappers
 from fastmsa.repo import SqlAlchemyRepository
-from fastmsa.uow import AbstractUnitOfWork, SqlAlchemyUnitOfWork
+from fastmsa.uow import SqlAlchemyUnitOfWork
 from tests.app.adapters.orm import init_mappers
 from tests.app.domain.aggregates import Product
 
@@ -43,22 +42,24 @@ def session() -> Session:
     return sessionmaker(engine)()
 
 
-@pytest.fixture
-def handlers() -> Generator[MessageHandlers, None, None]:
+@pytest.fixture(scope="module")
+def handlers() -> Generator[MessageHandlerMap, None, None]:
     yield init_handlers()
 
 
 @pytest.fixture
-def msa(session, handlers):
+def msa(handlers, session):
+    from fastmsa.event import messagebus
     from tests.app.routes import fastapi  # noqa
 
     assert handlers, "Empty handlers!"
-
-    return Config(__name__)
+    msa = Config.load_from_config()
+    messagebus.msa = msa  # XXX: Dependency Injection
+    return msa
 
 
 @pytest.fixture
-def get_session(msa: FastMSA) -> SessionMaker:
+def get_session() -> SessionMaker:
     """:class:`.Session` 팩토리 메소드(:class:`~app.adapters.orm.SessionMaker`)
     를 리턴하는 픽스쳐 입니다.
 
@@ -67,23 +68,20 @@ def get_session(msa: FastMSA) -> SessionMaker:
 
     :rtype: :class:`~app.adapters.orm.SessionMaker`
     """
-    return init_db(drop_all=True, init_hooks=[init_mappers])
+    return init_db(drop_all=False, init_hooks=[init_mappers])
 
 
-@pytest.fixture
-def get_repo(get_session: SessionMaker) -> SqlAlchemyRepoMaker:
-    """:class:`SqlAlchemyRepository` 팩토리 함수를 리턴하는 픽스쳐입니다."""
-    return lambda: SqlAlchemyRepository(Product, get_session())
-
-
-@pytest.fixture
-def get_uow(get_session: SessionMaker) -> Callable[[], AbstractUnitOfWork]:
-    return lambda: SqlAlchemyUnitOfWork([Product], get_session)
-
-
-def init_handlers() -> MessageHandlers:
+def init_handlers() -> MessageHandlerMap:
     import tests.app.handlers.batch  # noqa
-    from fastmsa.event import COMMAND_HANDLERS, EVENT_HANDLERS
+    from fastmsa.event import MESSAGE_HANDLERS, messagebus
+    from tests.app.adapters.repos import SqlAlchemyProductRepository
+
+    messagebus.uow = SqlAlchemyUnitOfWork(
+        [Product],
+        repo_maker={
+            Product: lambda session: SqlAlchemyProductRepository(Product, session)
+        },
+    )
 
     # 테스트에 의해 글로벌 핸들러 레지스트리가 망가지지 않도록 복사본 리턴.
-    return dict(EVENT_HANDLERS), dict(COMMAND_HANDLERS)
+    return dict(MESSAGE_HANDLERS)

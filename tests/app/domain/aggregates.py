@@ -2,9 +2,12 @@ from __future__ import annotations
 
 from typing import Optional
 
-from fastmsa.domain import Aggregate
+from fastmsa.core import Aggregate
+from fastmsa.logging import get_logger
 from tests.app.domain import commands, events
 from tests.app.domain.models import Batch, OrderLine
+
+logger = get_logger("tests.app.domain")
 
 
 class Product(Aggregate[Batch]):
@@ -16,9 +19,25 @@ class Product(Aggregate[Batch]):
 
     def allocate(self, line: OrderLine) -> Optional[str]:
         try:
+            if not self.items:
+                raise StopIteration
             batch = next(b for b in sorted(self.items) if b.can_allocate(line))
             batch.allocate(line)
             self.version_number += 1
+            self.messages.append(
+                events.Allocated(
+                    orderid=line.orderid,
+                    sku=line.sku,
+                    qty=line.qty,
+                    batchref=batch.reference,
+                )
+            )
+            logger.info(
+                "allocate batch: %r, avail_qty=%d, allocations=%r",
+                batch.reference,
+                batch.available_quantity,
+                batch._allocations,
+            )
             return batch.reference
         except StopIteration:
             self.add_message(events.OutOfStock(line.sku))
@@ -43,6 +62,12 @@ class Product(Aggregate[Batch]):
         """배치에 할당된 주문선을 수량만큼 해제합니다."""
         batch = next(b for b in self.items if b.reference == ref)
         batch._purchased_quantity = new_qty
+        logger.info(
+            "change_batch_quantity: ref=%r, new_qty=%r, avail_qty=%r",
+            ref,
+            new_qty,
+            batch.available_quantity,
+        )
         while batch.available_quantity < 0:
             line = batch.deallocate_one()
             self.messages.append(commands.Allocate(line.orderid, line.sku, line.qty))

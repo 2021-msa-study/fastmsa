@@ -1,8 +1,9 @@
 """ORM 어댑터 모듈"""
 from __future__ import annotations
 
-from sqlalchemy import (Column, Date, ForeignKey, Integer, MetaData, String,
-                        Table)
+from dataclasses import dataclass
+
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, MetaData, String, Table
 from sqlalchemy.orm import mapper, relationship
 
 from tests.app.domain.aggregates import Product
@@ -22,6 +23,11 @@ def init_mappers(metadata: MetaData) -> MetaData:
         extend_existing=True,
     )
 
+    @dataclass
+    class Allocation:
+        orderline_id: int
+        batch_id: int
+
     allocation = Table(
         "allocation",
         metadata,
@@ -37,7 +43,7 @@ def init_mappers(metadata: MetaData) -> MetaData:
         Column("reference", String(255), unique=True),
         Column("_purchased_quantity", Integer),
         Column("sku", ForeignKey("product.sku")),  # 외래키 관계 추가),
-        Column("eta", Date, nullable=True),
+        Column("eta", DateTime, nullable=True),
         extend_existing=True,
     )
 
@@ -51,13 +57,14 @@ def init_mappers(metadata: MetaData) -> MetaData:
     )
 
     mapper(Product, product, properties={"items": relationship(Batch)})
+    mapper(Allocation, allocation)
 
     mapper(
         Batch,
         batch,
         properties={
             "_allocations": relationship(
-                OrderLine, secondary=allocation, collection_class=set, lazy="joined"
+                OrderLine, secondary=allocation, collection_class=set
             ),
         },
     )

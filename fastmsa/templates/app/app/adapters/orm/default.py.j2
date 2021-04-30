@@ -1,7 +1,7 @@
 """ORM 어댑터 모듈"""
 from __future__ import annotations
 
-from sqlalchemy import Column, Date, ForeignKey, Integer, MetaData, String, Table
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, MetaData, String, Table
 from sqlalchemy.orm import mapper, relationship
 
 from fastmsa.orm import metadata
@@ -25,7 +25,7 @@ item = Table(
     Column("id", Integer, primary_key=True, autoincrement=True),
     Column("uuid", String(36), unique=True),
     Column("product_id", ForeignKey("product.id")),
-    Column("created", Date, nullable=True),
+    Column("created", DateTime, nullable=True),
     extend_existing=True,
 )
 

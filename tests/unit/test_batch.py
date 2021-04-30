@@ -1,10 +1,10 @@
 # noqa
 """Batch 도메인 모델 테스트."""
-from datetime import date
+from datetime import datetime
 
 from tests.app.domain.models import Batch, OrderLine
 
-today = date.today()
+today = datetime.today()
 
 
 def make_batch_and_line(

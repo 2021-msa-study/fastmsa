@@ -1,7 +1,6 @@
 """ORM 어댑터 모듈"""
 from __future__ import annotations
 
-import abc
 import io
 import logging
 import re
@@ -13,9 +12,12 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import clear_mappers as _clear_mappers
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
-from sqlalchemy.pool import Pool
+from sqlalchemy.pool import Pool, StaticPool
 
-from fastmsa.core import FastMSA, load_config
+from fastmsa.core import AbstractFastMSA
+from fastmsa.logging import get_logger
+
+logger = get_logger("fastmsa.orm")
 
 SessionMaker = Callable[[], Session]
 """Session 팩토리 타입."""
@@ -25,24 +27,18 @@ metadata: Optional[MetaData] = None
 __session_factory: Optional[SessionMaker] = None
 
 
-class AbstractSession(abc.ABC):
-    """세션의 일반적인 작업(`commit`, `rollback`) 을 추상화한 클래스."""
-
-    @abc.abstractmethod
-    def commit(self) -> None:
-        """트랜잭션을 커밋합니다."""
-        raise NotImplementedError
-
-
 def get_sessionmaker() -> SessionMaker:
     """기본설정으로 SqlAlchemy Session 팩토리를 만듭니다."""
+    from fastmsa.config import FastMSA
 
     global __session_factory
 
     if not __session_factory:
+        db_url = FastMSA.load_from_config().get_db_url()
+        logger.debug("initialize default session from db: %r", db_url)
         engine = init_engine(
             start_mappers(),
-            load_config().get_db_url(),
+            db_url,
             # isolation_level="REPEATABLE READ",
         )
         __session_factory = cast(SessionMaker, sessionmaker(engine))
@@ -58,7 +54,7 @@ def init_db(
     drop_all: bool = False,
     show_log: bool = False,
     init_hooks: list[Callable[[MetaData], Any]] = None,
-    config: FastMSA = None,
+    config: AbstractFastMSA = None,
 ) -> SessionMaker:
     """DB 엔진을 초기화 합니다."""
     global _get_session
@@ -72,7 +68,8 @@ def init_db(
         metadata,
         db_url if db_url else (config.get_db_url() if config else "sqlite://"),
         connect_args=config.get_db_connect_args() if config else None,
-        poolclass=config.get_db_poolclass() if config else None,
+        poolclass=StaticPool,
+        # poolclass=config.get_db_poolclass() if config else None,
         drop_all=drop_all,
         show_log=show_log,
         # isolation_level="REPEATABLE READ",

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import datetime
 from typing import Any, Optional
 
 import pytest
@@ -14,7 +14,7 @@ from tests.integration import insert_product
 
 
 def insert_batch(
-    session: Session, ref: str, sku: str, qty: int, eta: Optional[date]
+    session: Session, ref: str, sku: str, qty: int, eta: Optional[datetime]
 ) -> None:
     session.execute(
         "INSERT INTO batch (reference, sku, _purchased_quantity, eta)"
@@ -42,7 +42,7 @@ def session_with_product(get_session):
     _sku = ""
     session = get_session()
 
-    def wrapper(ref: str, sku: str, qty: int, eta: Optional[date]):
+    def wrapper(ref: str, sku: str, qty: int, eta: Optional[datetime]):
         nonlocal _batch_ref
         nonlocal _sku
         _batch_ref = ref
