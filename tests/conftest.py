@@ -77,8 +77,8 @@ def get_repo(get_session: SessionMaker) -> SqlAlchemyRepoMaker:
 
 
 @pytest.fixture
-def get_uow(get_session: SessionMaker) -> Callable[[], AbstractUnitOfWork[Product]]:
-    return lambda: SqlAlchemyUnitOfWork(Product, get_session)
+def get_uow(get_session: SessionMaker) -> Callable[[], AbstractUnitOfWork]:
+    return lambda: SqlAlchemyUnitOfWork([Product], get_session)
 
 
 def init_handlers() -> MessageHandlers:

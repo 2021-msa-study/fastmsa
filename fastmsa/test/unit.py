@@ -16,7 +16,7 @@ from fastmsa.domain import Aggregate, Entity
 from fastmsa.event import MessageBus, MessageHandlers
 from fastmsa.orm import AbstractSession
 from fastmsa.repo import AbstractRepository
-from fastmsa.uow import AbstractUnitOfWork
+from fastmsa.uow import AbstractUnitOfWork, AggregateReposMap
 
 E = TypeVar("E", bound=Entity)
 A = TypeVar("A", bound=Aggregate)
@@ -85,7 +85,7 @@ class FakeSession(AbstractSession):
 R = TypeVar("R", bound=AbstractRepository)
 
 
-class FakeUnitOfWork(AbstractUnitOfWork[A]):
+class FakeUnitOfWork(AbstractUnitOfWork):
     """단위 테스트를 위한 Fake UoW.
 
     Params:
@@ -94,18 +94,20 @@ class FakeUnitOfWork(AbstractUnitOfWork[A]):
 
     def __init__(
         self,
-        agg_class: Type[A],
-        id_field: Optional[str] = None,
-        items: Optional[list[A]] = None,
-        repo: Optional[R] = None,
+        id_fields: Optional[dict[Type[Aggregate], str]] = None,
+        items: Optional[list[Aggregate]] = None,
+        repos: Optional[AggregateReposMap] = None,
     ) -> None:
         super().__init__()
-        if repo:
-            self.repo = repo
-        elif id_field is not None:
-            self.repo = FakeRepository(id_field, items)
+
+        self.repos = {}
+        if id_fields:
+            for agg_class, id_field in id_fields.items():
+                self.repos[agg_class] = FakeRepository(id_field, items)
+        elif repos:
+            self.repos = repos
         else:
-            raise FastMSAError("id_field or repo should be given!")
+            raise FastMSAError("id_fields or repos should be given!")
         self.committed = False
 
     def _commit(self) -> None:

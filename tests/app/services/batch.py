@@ -25,25 +25,21 @@ def is_valid_sku(sku: str, batches: Sequence[Batch]) -> bool:
 
 
 def add_batch(
-    ref: str,
-    sku: str,
-    qty: int,
-    eta: Optional[date],
-    uow: AbstractUnitOfWork[Product],
+    ref: str, sku: str, qty: int, eta: Optional[date], uow: AbstractUnitOfWork
 ) -> None:
     """UOW를 이용해 배치를 추가합니다."""
     with uow:
-        product = uow.repo.get(sku)
+        product = uow[Product].get(sku)
 
         if not product:
             product = Product(sku, items=[])
-            uow.repo.add(product)
+            uow[Product].add(product)
         product.items.append(Batch(ref, sku, qty, eta))
         uow.commit()
 
 
 def allocate(
-    orderid: str, sku: str, qty: int, uow: AbstractUnitOfWork[Product]
+    orderid: str, sku: str, qty: int, uow: AbstractUnitOfWork
 ) -> Optional[str]:
     """ETA가 가장 빠른 배치를 찾아 :class:`.OrderLine` 을 할당합니다.
 
@@ -52,7 +48,7 @@ def allocate(
     """
     line = OrderLine(orderid, sku, qty)
     with uow:
-        product = uow.repo.get(line.sku)
+        product = uow[Product].get(line.sku)
         if product is None:
             raise InvalidSku(f"Invalid sku {line.sku}")
         batchref = product.allocate(line)
