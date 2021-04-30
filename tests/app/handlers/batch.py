@@ -1,4 +1,4 @@
-from fastmsa.core.models import AbstractMessageBroker
+from fastmsa.core import AbstractMessageBroker
 from fastmsa.event import on_command, on_event
 from fastmsa.logging import get_logger
 from fastmsa.uow import AbstractUnitOfWork

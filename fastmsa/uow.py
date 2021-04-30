@@ -4,9 +4,9 @@ SqlAlchemy를 이용한 기본 구현체를 제공합니다.
 """
 from __future__ import annotations
 
-from typing import Any, Callable, Optional, Sequence, Type, cast
+from typing import Any, Callable, Optional, Sequence, Type
 
-from fastmsa.core.models import (
+from fastmsa.core import (
     AbstractRepository,
     AbstractUnitOfWork,
     Aggregate,

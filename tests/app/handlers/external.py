@@ -1,6 +1,6 @@
 from typing import Any
 
-from fastmsa.core.models import AbstractPubsubClient
+from fastmsa.core import AbstractPubsubClient
 from fastmsa.event import messagebus, on_external_msg
 from tests.app.domain import commands
 

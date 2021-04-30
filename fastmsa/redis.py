@@ -7,8 +7,12 @@ from typing import Callable, Optional
 
 import aioredis  # type: ignore
 
-from fastmsa.core import AbstractFastMSA, AbstractMessageBroker, AbstractPubsubClient
-from fastmsa.core.models import AbstractChannelListener
+from fastmsa.core import (
+    AbstractChannelListener,
+    AbstractFastMSA,
+    AbstractMessageBroker,
+    AbstractPubsubClient,
+)
 from fastmsa.event import messagebroker
 from fastmsa.logging import get_logger
 
@@ -54,7 +58,7 @@ class AsyncRedisListener(AbstractChannelListener):
         self.tasks = []
         for ch in self.channels:
             channel_name = ch.name.decode()
-            assert self.handlers 
+            assert self.handlers
             handler = self.handlers[channel_name]
             self.tasks.append(asyncio.create_task(reader(ch, handler)))
 
