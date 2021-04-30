@@ -81,9 +81,8 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):  # type: ignore
     def _commit(self) -> None:
         """세션을 커밋합니다."""
         self.committed = True
-        self.session.commit
-        for repo in self.repos.values():
-            cast(SqlAlchemyRepository, repo).session.commit()
+        if self.session:
+            self.session.commit()
 
     def rollback(self) -> None:
         """세션을 롤백합니다."""

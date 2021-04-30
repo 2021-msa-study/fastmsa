@@ -55,7 +55,6 @@ class Aggregate(Entity, Generic[E]):
 
 T = TypeVar("T")
 A = TypeVar("A", bound=Aggregate)
-E = TypeVar("E", bound=Entity)
 
 
 class Event:
@@ -335,7 +334,9 @@ class AbstractUowProtocol(Protocol):
     agg_classes: Sequence[Type[Aggregate]]
 
 
-class AbstractUnitOfWork(AbstractUowProtocol, AbstractContextManager[AbstractSession]):
+class AbstractUnitOfWork(
+    AbstractUowProtocol, AbstractContextManager["AbstractUnitOfWork"]
+):
     """UnitOfWork 패턴의 추상 인터페이스입니다.
 
     UnitOfWork(UoW)는 영구 저장소의 유일한 진입점이며, 로드된 객체의

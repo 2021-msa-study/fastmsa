@@ -5,13 +5,9 @@ import json
 from dataclasses import asdict, dataclass, is_dataclass
 from typing import Callable, Optional
 
-import aioredis
+import aioredis  # type: ignore
 
-from fastmsa.core import (
-    AbstractFastMSA,
-    AbstractMessageBroker,
-    AbstractPubsubClient
-)
+from fastmsa.core import AbstractFastMSA, AbstractMessageBroker, AbstractPubsubClient
 from fastmsa.core.models import AbstractChannelListener
 from fastmsa.event import messagebroker
 from fastmsa.logging import get_logger
@@ -44,7 +40,7 @@ class AsyncRedisListener(AbstractChannelListener):
         self.redis = redis
         self.tasks = list[asyncio.Task]()
 
-    async def listen(self) -> list[asyncio.Task]:
+    async def listen(self, *args, **kwargs) -> list[asyncio.Task]:
         async def reader(channel, handler):
             logger.debug("Listen from channel: %r", channel)
             async for msg in channel.iter(encoding="utf8"):
@@ -58,6 +54,7 @@ class AsyncRedisListener(AbstractChannelListener):
         self.tasks = []
         for ch in self.channels:
             channel_name = ch.name.decode()
+            assert self.handlers 
             handler = self.handlers[channel_name]
             self.tasks.append(asyncio.create_task(reader(ch, handler)))
 
