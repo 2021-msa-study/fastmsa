@@ -70,7 +70,7 @@ def change_batch_quantity(e: commands.ChangeBatchQuantity, uow: AbstractUnitOfWo
 @on_event(events.Allocated)
 def publish_allocated_event(
     event: events.Allocated,
-    msgbroker: AbstractMessageBroker,
+    broker: AbstractMessageBroker,
 ):
     logger.info("allocated: %r", event)
-    msgbroker.client.publish_message_sync(events.Allocated, event)
+    broker.client.publish_message_sync(events.Allocated, event)
