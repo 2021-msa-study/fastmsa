@@ -17,7 +17,7 @@ from typing import Any, Generic, Optional, Protocol, Sequence, Type, TypeVar
 
 from fastmsa.core import FastMSAError
 from fastmsa.domain import Aggregate, Entity
-from fastmsa.orm import SessionMaker, get_sessionmaker, Session
+from fastmsa.orm import Session, SessionMaker, get_sessionmaker
 from fastmsa.repo import AbstractRepository, SqlAlchemyRepository
 
 T = TypeVar("T")

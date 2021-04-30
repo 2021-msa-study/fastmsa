@@ -3,6 +3,7 @@ uvicorn
 sqlalchemy
 requests
 psycopg2-binary
+tenacity
 
 jinja2
 

@@ -1,4 +1,4 @@
-from typing import Any, Generic, Protocol, TypeVar
+from typing import Any, Generic, Optional, Protocol, Sequence, TypeVar
 
 from fastmsa.core import Message
 
@@ -15,7 +15,7 @@ E = TypeVar("E", bound=Entity)
 class Aggregate(Entity, Generic[E]):
     """Aggregate 프로토콜 명세."""
 
-    items: list[E]
+    items: Optional[Sequence[E]]
     _messages: list[Message]
 
     def add_message(self, e: Message):

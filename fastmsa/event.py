@@ -11,6 +11,8 @@ import logging
 from collections import defaultdict
 from typing import Any, Callable, Type, TypeVar
 
+from tenacity import RetryError, Retrying, stop_after_attempt, wait_exponential
+
 from fastmsa.core import Command, Event, Message
 from fastmsa.uow import AbstractUnitOfWork
 
@@ -58,11 +60,19 @@ class MessageBus:
     def handle_event(self, event: Event, queue: list[Message], uow: AbstractUnitOfWork):
         for handler in self.event_handlers[type(event)]:
             try:
-                logger.debug("handling event %s with handler %s", event, handler)
-                handler(event, uow=uow)
-                queue.extend(uow.collect_new_messages())
-            except Exception:
-                logger.exception("Exception handling event %s", event)
+                retrying = Retrying(stop=stop_after_attempt(3), wait=wait_exponential())
+                for attempt in retrying:
+                    with attempt:
+                        logger.debug(
+                            "handling event %s with handler %s", event, handler
+                        )
+                        handler(event, uow=uow)
+                        queue.extend(uow.collect_new_messages())
+            except RetryError as retry_failure:
+                logger.error(
+                    "Failed to handle event %s times, giving up!",
+                    retry_failure.last_attempt.attempt_number,
+                )
                 continue
 
     def handle_command(
