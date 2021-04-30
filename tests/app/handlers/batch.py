@@ -73,4 +73,4 @@ def publish_allocated_event(
     msgbroker: AbstractMessageBroker,
 ):
     logger.info("allocated: %r", event)
-    msgbroker.client.publish_message(events.Allocated, event)
+    msgbroker.client.publish_message_sync(events.Allocated, event)

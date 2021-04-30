@@ -19,7 +19,7 @@ from typing import (
     Sequence,
     Type,
     TypeVar,
-    Union
+    Union,
 )
 
 from fastmsa.core.errors import FastMSAError
@@ -74,7 +74,6 @@ class Event:
     """
 
 
-
 class Command:
     """Command 객체.
 
@@ -92,7 +91,6 @@ class Command:
     """
 
 
-
 Message = Union[Command, Event]
 
 AnyMessageType = Union[Type[Event], Type[Command]]
@@ -108,10 +106,18 @@ class AbstractPubsub(Protocol):
 
 
 class AbstractPubsubClient(Protocol):
-    def subscribe_to(self, *channels: Union[str, Type]) -> AbstractPubsub:
+    async def subscribe_to(
+        self, *channels: Union[str, Type]
+    ) -> AbstractChannelListener:
         ...
 
-    def publish_message(self, channel: Union[str, Type], message: Any):
+    async def publish_message(self, channel: Union[str, Type], message: Any):
+        ...
+
+    def publish_message_sync(self, channel: Union[str, Type], message: Any):
+        ...
+
+    async def wait_closed(self):
         ...
 
 

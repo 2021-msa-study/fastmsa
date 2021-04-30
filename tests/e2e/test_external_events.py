@@ -60,7 +60,7 @@ async def test_change_batch_quantity_leading_to_reallocation(
         response = await api_client.post_to_allocate(orderid, sku, 10)
         assert response.json()["batchref"] == earlier_batch
 
-        await redis_client.publish_message_async(
+        await redis_client.publish_message(
             commands.ChangeBatchQuantity, {"batchref": earlier_batch, "qty": 5}
         )
 
@@ -73,12 +73,15 @@ async def test_change_batch_quantity_leading_to_reallocation(
             assert data["batchref"] == later_batch
             break
 
-    await test()
+    try:
+        await asyncio.wait_for(test(), timeout=1)
+    except asyncio.TimeoutError:
+        raise
+    finally:
+        for task in tasks:
+            task.cancel()
 
-    for task in tasks:
-        task.cancel()
+        await redis_client.wait_closed()
 
-    await redis_client.wait_closed()
-
-    broker = cast(RedisMessageBroker, msa.broker)
-    await broker.aclient.wait_closed()
+        broker = cast(RedisMessageBroker, msa.broker)
+        await broker.client.wait_closed()
