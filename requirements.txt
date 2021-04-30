@@ -4,11 +4,12 @@ sqlalchemy
 requests
 psycopg2-binary
 tenacity
-redis
-
+aioredis
 jinja2
 
 pytest
+pytest-asyncio
+httpx
 pylint
 mypy
 isort
