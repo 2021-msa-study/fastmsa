@@ -1,2 +1,2 @@
 # fastmsa
-Fast Micrservices Architecture Framework
+Fast Microservices Architecture Framework
