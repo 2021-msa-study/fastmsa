@@ -129,13 +129,21 @@ class RedisMessageBroker(AbstractMessageBroker):
 
         self._broker = messagebroker
         self.conn_info = conn_info
-        self.msa = msa or self.msa
+        self._msa = msa
 
         # Type[Message] -> Callble 타입의 매핑을 문자열 타입으로 바꿉니다.
         self.channel_handlers = {
             k.__name__: v[0] for k, v in self._broker.handlers.items()
         }
         self.client = AsyncRedisClient(self.conn_info, self.channel_handlers)
+
+    @property
+    def msa(self):
+        return self._msa
+
+    @msa.setter
+    def msa(self, new_msa):
+        self._msa = new_msa
 
     @property
     async def listener(self) -> AbstractChannelListener:

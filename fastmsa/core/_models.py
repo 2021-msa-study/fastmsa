@@ -190,47 +190,12 @@ class AbstractFastMSA(abc.ABC):
     def api(self) -> AbstractAPI:
         raise NotImplemented
 
-    def get_api_host(self) -> str:
-        """Get API server's host address."""
-        return "127.0.0.1"
-
-    def get_api_port(self) -> int:
-        """Get API server's host port."""
-        return 5000
-
-    def get_api_url(self) -> str:
-        """Get API server's full url."""
-        return f"http://{self.get_api_host()}:{self.get_api_port()}"
-
-    def get_db_url(self) -> str:
-        """SqlAlchemy 에서 사용 가능한 형식의 DB URL을 리턴합니다.
-
-        다음처럼 OS 환경변수를 이용할 수도 있씁니다.
-
-        if self.mode == "prod":
-            db_host = os.environ.get("DB_HOST", "localhost")
-            db_user = os.environ.get("DB_USER", "postgres")
-            db_pass = os.environ.get("DB_PASS", "password")
-            db_name = os.environ.get("DB_NAME", db_user)
-            return f"postgresql://{db_user}:{db_pass}@{db_host}/{db_name}"
-        else:
-            return f"sqlite://"
-        """
-
-        raise NotImplementedError
-
-    def get_db_connect_args(self) -> dict[str, Any]:
-        """Get db connection arguments for SQLAlchemy's engine creation.
-
-        Example:
-            For SQLite dbs, it could be: ::
-
-                {'check_same_thread': False}
-        """
-        return {}
-
     @property
     def uow(self) -> AbstractUnitOfWork:
+        raise NotImplemented
+
+    @property
+    def messagebus(self) -> Optional[AbstractMessageHandler]:
         raise NotImplemented
 
     @property
