@@ -5,8 +5,6 @@ import os
 
 from fastmsa.config import FastMSA
 from fastmsa.uow import RepoMakerDict
-from tests.app.adapters.repos import SqlAlchemyProductRepository
-from tests.app.domain.aggregates import Product
 
 
 class Config(FastMSA):
@@ -16,10 +14,12 @@ class Config(FastMSA):
     """
 
     title = "Test APP"
+    allow_external_event = True  # 외부 메세지 브로커와의 통신을 활성화합니다.
 
     @property
     def uow(self):
         from fastmsa.uow import SqlAlchemyUnitOfWork
+        from tests.app.adapters.repos import SqlAlchemyProductRepository
         from tests.app.domain.aggregates import Product
 
         repo_maker: RepoMakerDict = {

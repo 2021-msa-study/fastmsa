@@ -11,7 +11,8 @@ from typing import Any, Optional, Type, cast
 
 from sqlalchemy.pool import Pool, StaticPool
 
-from fastmsa.core.models import AbstractFastMSA
+from fastmsa.core import AbstractFastMSA, AbstractMessageBroker
+from fastmsa.redis import RedisConnectInfo
 
 
 @dataclass
@@ -46,6 +47,7 @@ class FastMSA(AbstractFastMSA):
     """외부 메세지 브로커를 사용할지 여부."""
     is_implicit_name: bool = True
     """setup.cfg 없이 암시적으로 부여된 이름인지 여부."""
+    _broker: Optional[AbstractMessageBroker] = None
 
     @staticmethod
     def load_from_config(path=Path(".")) -> FastMSA:
@@ -125,6 +127,27 @@ class FastMSA(AbstractFastMSA):
 
         raise NotImplementedError
 
+    @property
+    def broker(self) -> Optional[AbstractMessageBroker]:
+        from fastmsa.redis import RedisMessageBroker
+
+        if not self.allow_external_event:
+            return None
+        else:
+            if not self._broker:
+                self._broker = cast(
+                    AbstractMessageBroker,
+                    RedisMessageBroker(self.redis_conn_info, self),
+                )
+            return self._broker
+
+    @property
+    def redis_conn_info(self) -> RedisConnectInfo:
+        return RedisConnectInfo(
+            host="localhost",
+            port=6379,
+        )
+
     def get_db_connect_args(self) -> dict[str, Any]:
         """Get db connection arguments for SQLAlchemy's engine creation.
 
@@ -149,13 +172,3 @@ class FastMSA(AbstractFastMSA):
         from fastmsa.api import app
 
         app.title = self.title
-
-
-class Config(FastMSA):
-    """기본 ."""
-
-    title = "FastMSA"
-
-    def get_db_url(self) -> str:
-        """DB 접속 정보."""
-        return "sqlite://"

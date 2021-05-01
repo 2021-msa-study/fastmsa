@@ -1,7 +1,7 @@
 """Aggregate models."""
 from dataclasses import dataclass
 
-from fastmsa.domain import Aggregate
+from fastmsa.core import Aggregate
 
 from .models import Item
 

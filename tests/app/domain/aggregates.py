@@ -70,4 +70,7 @@ class Product(Aggregate[Batch]):
         )
         while batch.available_quantity < 0:
             line = batch.deallocate_one()
-            self.messages.append(commands.Allocate(line.orderid, line.sku, line.qty))
+            if line:
+                self.messages.append(
+                    commands.Allocate(line.orderid, line.sku, line.qty)
+                )

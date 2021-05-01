@@ -27,6 +27,26 @@ metadata: Optional[MetaData] = None
 __session_factory: Optional[SessionMaker] = None
 
 
+def set_default_sessionmaker(sessionmaker: SessionMaker):
+    global __session_factory
+    __session_factory = sessionmaker
+
+
+def init_default_sessionmaker(
+    db_url: str,
+    connect_args: Optional[dict] = None,
+    poolclass: Optional[Type[Pool]] = None,
+) -> SessionMaker:
+    global __session_factory
+
+    logger.debug("initialize default session from db: %r", db_url)
+    engine = init_engine(
+        start_mappers(), db_url, connect_args=connect_args, poolclass=poolclass
+    )
+    __session_factory = cast(SessionMaker, sessionmaker(engine))
+    return __session_factory
+
+
 def get_sessionmaker() -> SessionMaker:
     """기본설정으로 SqlAlchemy Session 팩토리를 만듭니다."""
     from fastmsa.config import FastMSA
@@ -35,13 +55,7 @@ def get_sessionmaker() -> SessionMaker:
 
     if not __session_factory:
         db_url = FastMSA.load_from_config().get_db_url()
-        logger.debug("initialize default session from db: %r", db_url)
-        engine = init_engine(
-            start_mappers(),
-            db_url,
-            # isolation_level="REPEATABLE READ",
-        )
-        __session_factory = cast(SessionMaker, sessionmaker(engine))
+        __session_factory = init_default_sessionmaker(db_url)
 
     return __session_factory
 

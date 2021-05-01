@@ -4,9 +4,9 @@ SqlAlchemy를 이용한 기본 구현체를 제공합니다.
 """
 from __future__ import annotations
 
-from typing import Any, Callable, Optional, Sequence, Type, cast
+from typing import Any, Callable, Optional, Sequence, Type
 
-from fastmsa.core.models import (
+from fastmsa.core import (
     AbstractRepository,
     AbstractUnitOfWork,
     Aggregate,
@@ -81,9 +81,8 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):  # type: ignore
     def _commit(self) -> None:
         """세션을 커밋합니다."""
         self.committed = True
-        self.session.commit
-        for repo in self.repos.values():
-            cast(SqlAlchemyRepository, repo).session.commit()
+        if self.session:
+            self.session.commit()
 
     def rollback(self) -> None:
         """세션을 롤백합니다."""

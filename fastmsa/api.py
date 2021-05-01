@@ -1,6 +1,7 @@
 """FastAPI 로 구현한 RESTful 서비스 앱."""
 from typing import Any, Callable
 
+import httpx
 import requests
 from fastapi import FastAPI
 
@@ -40,6 +41,30 @@ class APIClient:
 
     def post_to_allocate(self, orderid, sku, qty, expect_success=True):
         r = self.session.post(
+            "/batches/allocate",
+            json={
+                "orderid": orderid,
+                "sku": sku,
+                "qty": qty,
+            },
+        )
+        if expect_success:
+            assert r.status_code == 201
+        return r
+
+
+class AsyncAPIClient:
+    def __init__(self, session: httpx.AsyncClient):
+        self.session = session
+
+    async def post_to_add_batch(self, ref: str, sku: str, qty: int, eta: str):
+        r = await self.session.post(
+            "/batches", json={"ref": ref, "sku": sku, "qty": qty, "eta": eta}
+        )
+        assert r.status_code == 201
+
+    async def post_to_allocate(self, orderid, sku, qty, expect_success=True):
+        r = await self.session.post(
             "/batches/allocate",
             json={
                 "orderid": orderid,

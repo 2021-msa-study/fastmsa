@@ -1,4 +1,5 @@
 """Command line script for FastMSA."""
+import asyncio
 import glob
 import importlib
 import os
@@ -22,7 +23,6 @@ from fastmsa.core import FastMSAError
 from fastmsa.event import MessageHandlerMap
 from fastmsa.logging import get_logger
 from fastmsa.utils import cwd, scan_resource_dir
-from tests.app.config import SqlAlchemyProductRepository
 
 init_colors()  # For Windows environment
 
@@ -118,6 +118,7 @@ class FastMSACommand:
             #    (self.path / "app").rename(self._name)
 
     def init_app(self, init_routes=True):
+        """FastMSA 앱을 초기화 합니다."""
         logger.info(bold("Load config and initialize app..."))
         bullet = bold("✓" if os.name != "nt" else "v", Fore.GREEN)
 
@@ -200,60 +201,19 @@ class FastMSACommand:
                     )
             uvicorn.run(app_name, reload=reload)
 
-    def orm(self):
-        from tests.app.domain import Batch, OrderLine, Product  # noqa
+    def broker(self):
+        """Redis Message Broker를 실행합니다."""
 
-        self.banner("ORM Test", icon="📣")
+        self.banner("Launching Redis Consumer", icon="📣")
         self.init_app(init_routes=False)
 
-        with self.msa.uow as uow:
-            repo = cast(SqlAlchemyProductRepository, uow[Product])
-            logger.info("uow: %r", uow)
-            logger.info("repo: %r", repo)
-            test_sku = "TEST-TABLE"
-            test_batchref = "test-batch-001"
-            test_orderid = "test-order-001"
-            product = repo.get(test_sku)
-            if not product:
-                product = Product(test_sku, [])
-                repo.session.add(product)
+        if not self.broker:
+            raise FastMSAError("External MessageBroker is not initialized!")
 
-            repo.session.execute(
-                "DELETE FROM allocation WHERE orderline_id in ("
-                "SELECT id FROM order_line WHERE orderid=:orderid)",
-                dict(orderid=test_orderid),
-            )
-            repo.session.execute(
-                "DELETE FROM order_line WHERE orderid=:orderid",
-                dict(orderid=test_orderid),
-            )
-            repo.session.commit()
+        if not self.msa.allow_external_event:
+            raise FastMSAError("External events are not allowed!")
 
-            batch = next(it for it in product.items if it.reference == test_batchref)
-            if not batch:
-                batch = Batch(test_batchref, test_sku, 50)
-                repo.session.add(batch)
-
-            line = repo.session.query(OrderLine).filter_by(orderid=test_orderid).first()
-            if not line:
-                line = OrderLine(test_orderid, test_sku, 10)
-
-            # batch.allocate(line)
-            product.allocate(line)
-            repo.session.commit()
-
-            assert 40 == batch.available_quantity
-            assert 1 == len(batch._allocations)
-            logger.info(
-                "allocate batch: %r, avail_qty=%d, allocations=%r",
-                batch.reference,
-                batch.available_quantity,
-                batch._allocations,
-            )
-            allocations = repo.session.execute("SELECT * FROM allocation").all()
-            logger.info("allocations: %r", allocations)
-
-            repo.session.commit()
+        asyncio.run(self.msa.broker.main())
 
     def load_domain(self) -> list[type]:
         """도메인 클래스를 로드합니다.
@@ -372,7 +332,7 @@ class FastMSACommandParser:
             self._cmd.info,
             self._cmd.init,
             self._cmd.run,
-            self._cmd.orm,
+            self._cmd.broker,
         ]:
             command = handler.__name__
             # 핸들러 함수의 주석을 커맨드라인 도움말로 변환하기 위한 작업입니다.

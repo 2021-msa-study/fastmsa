@@ -9,23 +9,28 @@
 """
 import logging
 from collections import defaultdict
-from inspect import Parameter, signature
-from typing import Any, Callable, Mapping, Optional, Type, TypeVar, Union
+from typing import Any, Callable, Optional, Type, TypeVar
 
 from tenacity import RetryError, Retrying, stop_after_attempt, wait_exponential
 from uvicorn.logging import DefaultFormatter
 
-from fastmsa.core import AbstractFastMSA, Command, Event, FastMSAError, Message
+from fastmsa.core import (
+    AbstractFastMSA,
+    AbstractMessageHandler,
+    AnyMessageType,
+    Command,
+    Event,
+    FastMSAError,
+    Message,
+    MessageHandlerMap,
+)
 from fastmsa.uow import AbstractUnitOfWork
-
-AnyMessageType = Union[Type[Event], Type[Command]]
-MessageHandlerMap = dict[AnyMessageType, list[Callable]]
 
 MESSAGE_HANDLERS: MessageHandlerMap = defaultdict(list)
 
-
 E = TypeVar("E", bound=Event)
 C = TypeVar("C", bound=Command)
+M = TypeVar("M", bound=Message)
 F = TypeVar("F", bound=Callable[..., Any])
 T = TypeVar("T")
 
@@ -36,12 +41,7 @@ ch.setFormatter(DefaultFormatter())
 logger.addHandler(ch)
 
 
-class MessageBus:
-    handlers: MessageHandlerMap = {}
-    params_cache: dict[Type[Message], Mapping[str, Parameter]] = {}
-    msa: Optional[AbstractFastMSA] = None
-    uow: Optional[AbstractUnitOfWork] = None
-
+class MessageBus(AbstractMessageHandler):
     def __init__(
         self,
         handlers: MessageHandlerMap,
@@ -110,16 +110,19 @@ class MessageBus:
     ):
         """핸들러의 파라메터를 보고 적절한 의존성을 주입하여 핸들러를 호출합니다.
 
-        예를 들어 `def a_handler(uow, ..)` 와 같은 핸들러가 있을 경우 `uow`에
-        대한 의존성을 주입합니다.
+        예를 들어 `def a_handler(uow, broker)` 와 같은 핸들러가 있을 경우 `uow` 나
+        `broker`(외부 메세지 브로커) 같은 이름은 외부 의존성을 가리킵니다.
         """
-        params = self.params_cache.get(type(message))
+        params = self.params_cache.get(handler)
         if not params:
             return handler(message)
 
         args = {
             "uow": uow if "uow" in params else False,
             "msa": self.msa if "msa" in params else False,
+            "broker": self.msa.broker
+            if "broker" in params and self.msa and self.msa.broker
+            else False,
         }
 
         missing = {k: v for k, v in args.items() if v is None}
@@ -145,7 +148,7 @@ def clear_handlers():
     MESSAGE_HANDLERS.clear()
 
 
-def on_event(etype: Type[E], bus: MessageBus = messagebus) -> Callable[[F], F]:
+def on_event(etype: Type[E]) -> Callable[[F], F]:
     """이벤트 핸들러 데코레이터.
 
     함수를 이벤트 핸들러 레지스트리에 등록합니다.
@@ -153,14 +156,13 @@ def on_event(etype: Type[E], bus: MessageBus = messagebus) -> Callable[[F], F]:
 
     def _wrapper(func: F) -> F:
 
-        bus.params_cache[etype] = signature(func).parameters
-        bus.handlers[etype].append(func)
+        messagebus.register(etype, func)
         return func
 
     return _wrapper
 
 
-def on_command(etype: Type[C], bus: MessageBus = messagebus) -> Callable[[F], F]:
+def on_command(etype: Type[C]) -> Callable[[F], F]:
     """커맨드 핸들러 데코레이터.
 
     함수를 커맨드 핸들러 레지스트리에 등록합니다.
@@ -168,11 +170,46 @@ def on_command(etype: Type[C], bus: MessageBus = messagebus) -> Callable[[F], F]
 
     def _wrapper(func: F) -> F:
         # 이미 등록된 핸들러가 덮어씌우지지 않도록 방지
-        handler = bus.handlers.get(etype)
+        handler = messagebus.handlers.get(etype)
         if handler:
             raise FastMSAError(f"Handler already exists for {etype}: {handler}")
-        bus.params_cache[etype] = signature(func).parameters
-        bus.handlers[etype] = [func]
+        messagebus.register(etype, func)
+        return func
+
+    return _wrapper
+
+
+class MessageBroker(AbstractMessageHandler):
+    """Async IO를 기본 동작 방식으로 하는 MessageBroker 입니다."""
+
+    def __init__(self, handlers: MessageHandlerMap):
+        self.handlers = handlers
+
+    async def main(self):
+        if not self.msa.allow_external_event:
+            raise FastMSAError("External events are not allowed!")
+
+        raise NotImplemented
+
+
+EXTERNAL_MSG_HANDLERS: MessageHandlerMap = defaultdict(list)
+messagebroker = MessageBroker(EXTERNAL_MSG_HANDLERS)
+
+
+def on_external_msg(etype: AnyMessageType) -> Callable[[F], F]:
+    """외부 이벤트 핸들러 데코레이터.
+
+    함수를 외부 이벤트 핸들러 레지스트리에 등록합니다.
+    """
+
+    def _wrapper(func: F) -> F:
+        # 이미 등록된 핸들러가 덮어씌워지지 않도록 방지
+        handler = messagebroker.handlers.get(etype)
+        if handler:
+            raise FastMSAError(
+                f"External event handler already exists for {etype}: {handler}"
+            )
+        messagebroker.register(etype, func)
         return func
 
     return _wrapper

@@ -1,3 +1,4 @@
+from fastmsa.core import AbstractMessageBroker
 from fastmsa.event import on_command, on_event
 from fastmsa.logging import get_logger
 from fastmsa.uow import AbstractUnitOfWork
@@ -64,3 +65,12 @@ def change_batch_quantity(e: commands.ChangeBatchQuantity, uow: AbstractUnitOfWo
             uow.commit()
         else:
             logger.error("Product not found for batchref: %r", e.ref)
+
+
+@on_event(events.Allocated)
+def publish_allocated_event(
+    event: events.Allocated,
+    broker: AbstractMessageBroker,
+):
+    logger.info("allocated: %r", event)
+    broker.client.publish_message_sync(events.Allocated, event)

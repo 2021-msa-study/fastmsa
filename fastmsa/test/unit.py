@@ -22,7 +22,7 @@ from fastmsa.core import (
     FastMSAError,
     Message,
 )
-from fastmsa.event import AnyMessageType, MessageBus, MessageHandlerMap
+from fastmsa.event import AnyMessageType, MessageBus
 
 E = TypeVar("E", bound=Entity)
 A = TypeVar("A", bound=Aggregate)
@@ -109,8 +109,10 @@ class FakeUnitOfWork(AbstractUnitOfWork):
 
 class FakeMessageBus(MessageBus):
     def __init__(
-        self, handlers: MessageHandlerMap, fake_messages: set[Type[Message]] = None
+        self, messagebus: MessageBus, fake_messages: set[Type[Message]] = None
     ):
+        self.uow = messagebus.uow
+        self.handlers = messagebus.handlers
         self.message_published = list[Message]()
 
         # Fake 이벤트라면 이벤트를 실행하지 않고
@@ -126,7 +128,6 @@ class FakeMessageBus(MessageBus):
                 return [fake_handler]
             return handlers
 
-        self.handlers = handlers
-        self.fake_handlers = {k: get_fake_handler(k, v) for k, v in handlers.items()}
+        self.fake_handlers = {k: get_fake_handler(k, v) for k, v in self.handlers.items()}
 
         super().__init__(self.fake_handlers)

@@ -46,6 +46,8 @@ setup(
         "jinja2",
         "colorama",
         "tenacity",
+        "aioredis",
+        "httpx",
     ],
     classifiers=[
         "Development Status :: 3 - Alpha",

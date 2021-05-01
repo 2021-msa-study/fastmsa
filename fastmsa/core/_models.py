@@ -1,15 +1,19 @@
 from __future__ import annotations
 
 import abc
+import asyncio
 from contextlib import AbstractContextManager, ContextDecorator
 from dataclasses import dataclass
+from inspect import Parameter, signature
 from pathlib import Path
 from typing import (
     Any,
+    Callable,
     Generator,
     Generic,
     List,
     Literal,
+    Mapping,
     Optional,
     Protocol,
     Sequence,
@@ -18,7 +22,7 @@ from typing import (
     Union,
 )
 
-from fastmsa.core.errors import FastMSAError
+from ._errors import FastMSAError
 
 
 class Entity(Protocol):
@@ -53,9 +57,6 @@ T = TypeVar("T")
 A = TypeVar("A", bound=Aggregate)
 
 
-E = TypeVar("E", bound=Entity)
-
-
 class Event:
     """이벤트 객체.
 
@@ -70,8 +71,6 @@ class Event:
     know who’s handling an event, senders should not care whether the receivers
     succeeded or failed.
     """
-
-    pass
 
 
 class Command:
@@ -90,14 +89,34 @@ class Command:
     As a result, when they fail, the sender needs to receive error information.
     """
 
-    pass
-
 
 Message = Union[Command, Event]
 
+AnyMessageType = Union[Type[Event], Type[Command]]
+MessageHandlerMap = dict[AnyMessageType, list[Callable]]
 
-class AbstractSubscriber(Protocol):
+
+class AbstractPubsub(Protocol):
     def listen(self) -> Generator[Any, None, None]:
+        ...
+
+    def get_message(self, timeout: Optional[int] = None) -> Optional[dict[str, Any]]:
+        ...
+
+
+class AbstractPubsubClient(Protocol):
+    async def subscribe_to(
+        self, *channels: Union[str, Type]
+    ) -> AbstractChannelListener:
+        ...
+
+    async def publish_message(self, channel: Union[str, Type], message: Any):
+        ...
+
+    def publish_message_sync(self, channel: Union[str, Type], message: Any):
+        ...
+
+    async def wait_closed(self):
         ...
 
 
@@ -113,6 +132,36 @@ class AbstractAPI(Protocol):
 
     def delete(self):
         ...
+
+
+class AbstractMessageHandler(Protocol):
+    handlers: MessageHandlerMap = {}  # Dependency Injection
+    params_cache: dict[Callable, Mapping[str, Parameter]] = {}
+    """핸들러 파라메터 캐시. 이름이 따른 Dependency Injection을 위해 사용합니다."""
+    msa: Optional[AbstractFastMSA] = None  # Dependency Injection
+    uow: Optional[AbstractUnitOfWork] = None  # Dependency Injection
+    pubsub: Optional[AbstractPubsubClient] = None  # Dependency Injection
+
+    def register(self, etype: AnyMessageType, func: Callable):
+        self.params_cache[func] = signature(func).parameters
+        self.handlers[etype].append(func)
+
+
+class AbstractChannelListener(Protocol):
+    async def listen(self, *args, **kwargs) -> list[asyncio.Task]:
+        ...
+
+
+class AbstractMessageBroker(AbstractMessageHandler):
+
+    client: AbstractPubsubClient
+
+    @property
+    async def listener(self) -> AbstractChannelListener:
+        raise NotImplemented
+
+    async def main(self, wait_until_close=True):
+        raise NotImplemented
 
 
 @dataclass
@@ -174,6 +223,10 @@ class AbstractFastMSA(abc.ABC):
 
     @property
     def uow(self) -> AbstractUnitOfWork:
+        raise NotImplemented
+
+    @property
+    def broker(self) -> Optional[AbstractMessageBroker]:
         raise NotImplemented
 
     def init_fastapi(self):
@@ -281,7 +334,9 @@ class AbstractUowProtocol(Protocol):
     agg_classes: Sequence[Type[Aggregate]]
 
 
-class AbstractUnitOfWork(AbstractUowProtocol, AbstractContextManager[AbstractSession]):
+class AbstractUnitOfWork(
+    AbstractUowProtocol, AbstractContextManager["AbstractUnitOfWork"]
+):
     """UnitOfWork 패턴의 추상 인터페이스입니다.
 
     UnitOfWork(UoW)는 영구 저장소의 유일한 진입점이며, 로드된 객체의
