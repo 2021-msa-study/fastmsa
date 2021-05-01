@@ -333,7 +333,6 @@ class FastMSACommandParser:
             self._cmd.init,
             self._cmd.run,
             self._cmd.broker,
-            self._cmd.orm,
         ]:
             command = handler.__name__
             # 핸들러 함수의 주석을 커맨드라인 도움말로 변환하기 위한 작업입니다.
