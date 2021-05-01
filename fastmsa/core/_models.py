@@ -138,9 +138,17 @@ class AbstractMessageHandler(Protocol):
     handlers: MessageHandlerMap = {}  # Dependency Injection
     params_cache: dict[Callable, Mapping[str, Parameter]] = {}
     """핸들러 파라메터 캐시. 이름이 따른 Dependency Injection을 위해 사용합니다."""
-    msa: Optional[AbstractFastMSA] = None  # Dependency Injection
     uow: Optional[AbstractUnitOfWork] = None  # Dependency Injection
+    broker: Optional[AbstractMessageBroker] = None  # Dependency Injection
     pubsub: Optional[AbstractPubsubClient] = None  # Dependency Injection
+
+    @property
+    def msa(self) -> Optional[AbstractFastMSA]:
+        raise NotImplemented
+
+    @msa.setter
+    def msa(self, new_msa: Optional[AbstractFastMSA]):
+        raise NotImplemented
 
     def register(self, etype: AnyMessageType, func: Callable):
         self.params_cache[func] = signature(func).parameters

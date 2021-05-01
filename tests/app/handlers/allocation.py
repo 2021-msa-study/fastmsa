@@ -1,7 +1,9 @@
-from fastmsa.core import AbstractMessageBroker
+from dataclasses import asdict
+
+from fastmsa.core import AbstractPubsubClient
 from fastmsa.event import on_command, on_event
 from fastmsa.logging import get_logger
-from fastmsa.uow import AbstractUnitOfWork
+from fastmsa.uow import AbstractUnitOfWork, SqlAlchemyUnitOfWork
 from tests.app.adapters import email
 from tests.app.domain import commands, events
 from tests.app.domain.aggregates import Product
@@ -70,7 +72,50 @@ def change_batch_quantity(e: commands.ChangeBatchQuantity, uow: AbstractUnitOfWo
 @on_event(events.Allocated)
 def publish_allocated_event(
     event: events.Allocated,
-    broker: AbstractMessageBroker,
+    pubsub: AbstractPubsubClient,
 ):
     logger.info("allocated: %r", event)
-    broker.client.publish_message_sync(events.Allocated, event)
+    pubsub.publish_message_sync(events.Allocated, event)
+
+
+@on_event(events.Allocated)
+def add_allocation_to_read_model(
+    event: events.Allocated,
+    uow: SqlAlchemyUnitOfWork,
+):
+    with uow:
+        uow.session.execute(
+            """
+            INSERT INTO allocations_view (orderid, sku, batchref)
+            VALUES (:orderid, :sku, :batchref)
+            """,
+            dict(orderid=event.orderid, sku=event.sku, batchref=event.batchref),
+        )
+        uow.commit()
+
+
+@on_event(events.Deallocated)
+def reallocate(
+    event: events.Deallocated,
+    uow: SqlAlchemyUnitOfWork,
+):
+    with uow:
+        product = uow[Product].get(event.sku)
+        product.messages.append(commands.Allocate(**asdict(event)))
+        uow.commit()
+
+
+@on_event(events.Deallocated)
+def remove_allocation_from_read_model(
+    event: events.Deallocated,
+    uow: SqlAlchemyUnitOfWork,
+):
+    with uow:
+        uow.session.execute(
+            """
+            DELETE FROM allocations_view
+            WHERE orderid = :orderid AND sku = :sku
+            """,
+            dict(orderid=event.orderid, sku=event.sku),
+        )
+        uow.commit()

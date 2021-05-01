@@ -9,9 +9,10 @@
 
 Low Gear(고속 기어) 테스트입니다.
 """
-from typing import Any, Callable, Optional, Type, TypeVar
+from typing import Any, Callable, Optional, Type, TypeVar, Union
 
 from fastmsa.core import (
+    AbstractPubsubClient,
     AbstractRepository,
     AbstractSession,
     AbstractUnitOfWork,
@@ -107,14 +108,20 @@ class FakeUnitOfWork(AbstractUnitOfWork):
         pass
 
 
-class FakeMessageBus(MessageBus):
-    def __init__(
-        self, messagebus: MessageBus, fake_messages: set[Type[Message]] = None
-    ):
-        self.uow = messagebus.uow
-        self.handlers = messagebus.handlers
-        self.message_published = list[Message]()
+class FakePubsubCilent(AbstractPubsubClient):
+    def __init__(self, message_published: list[Message]):
+        self.message_published = message_published
 
+    def publish_message_sync(self, channel: Union[str, Type], message: Any):
+        self.message_published.append(message)
+
+
+class FakeMessageBus(MessageBus):
+    def make_fake_handlers(
+        self,
+        messagebus: MessageBus,
+        fake_messages: set[Type[Message]] = None,
+    ):
         # Fake 이벤트라면 이벤트를 실행하지 않고
         # events_published 에 추가하는 Fake 핸들러를 만들어 리턴한다.
         def get_fake_handler(
@@ -128,6 +135,19 @@ class FakeMessageBus(MessageBus):
                 return [fake_handler]
             return handlers
 
-        self.fake_handlers = {k: get_fake_handler(k, v) for k, v in self.handlers.items()}
+        return {k: get_fake_handler(k, v) for k, v in messagebus.handlers.items()}
 
-        super().__init__(self.fake_handlers)
+    def __init__(
+        self,
+        messagebus: MessageBus,
+        fake_messages: set[Type[Message]] = None,
+        pubsub: Optional[AbstractPubsubClient] = None,
+    ):
+
+        self.message_published = list[Message]()
+
+        super().__init__(
+            self.make_fake_handlers(messagebus, fake_messages),
+            pubsub=pubsub or FakePubsubCilent(self.message_published),
+            uow=messagebus.uow,
+        )
