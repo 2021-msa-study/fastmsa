@@ -61,6 +61,9 @@ def messagebus() -> Generator[MessageBus, None, None]:
     from tests.app.adapters.repos import SqlAlchemyProductRepository
     from tests.app.handlers import batch, external  # noqa
 
+    clear_mappers()
+    start_mappers(use_exist=False, init_hooks=[init_mappers])
+
     if not check_port_opened(5432):
         warnings.warn(
             "PostgreSQL server is not running. Falling back to in-memory SQLite DB"
@@ -91,8 +94,7 @@ def msa(messagebus: MessageBus):
 
     if not check_port_opened(6379):
         warnings.warn("Redis server is not running. Falling back to FakeRedisClient")
-
-    msa.broker.client = FakeRedisClient()
+        msa.broker.client = FakeRedisClient()
 
     yield msa
 
