@@ -332,6 +332,7 @@ AggregateReposMap = dict[Type[Aggregate], AbstractRepository]
 class AbstractUowProtocol(Protocol):
     repos: AggregateReposMap
     agg_classes: Sequence[Type[Aggregate]]
+    committed: bool
 
 
 class AbstractUnitOfWork(

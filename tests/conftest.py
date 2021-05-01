@@ -19,8 +19,10 @@ from fastmsa.orm import (
 )
 from fastmsa.repo import SqlAlchemyRepository
 from fastmsa.test.e2e import FakeRedisClient, check_port_opened
+from fastmsa.test.unit import FakeRepository, FakeUnitOfWork
 from fastmsa.uow import SqlAlchemyUnitOfWork
 from tests.app.adapters.orm import init_mappers
+from tests.app.adapters.repos import SqlAlchemyProductRepository
 from tests.app.domain.aggregates import Product
 
 # types
@@ -34,7 +36,7 @@ AddStockFunc = Callable[[AddStockLines], None]
 from tests.app.config import Config
 
 
-def memory_sessionmaker():
+def create_sessionmaker():
     engine = create_engine(
         "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
     )
@@ -45,12 +47,32 @@ def memory_sessionmaker():
 
 
 @pytest.fixture
-def session() -> Session:
+def sqlite_sessionmaker():
+    return create_sessionmaker()
+
+
+@pytest.fixture
+def session(sqlite_sessionmaker) -> Session:
     """테스트에 사용될 새로운 :class:`.Session` 픽스처를 리턴합니다.
 
     :rtype: :class:`~sqlalchemy.orm.Session`
     """
-    return memory_sessionmaker()()
+    return sqlite_sessionmaker()
+
+
+def create_uow(get_session: Optional[SessionMaker] = None):
+    return SqlAlchemyUnitOfWork(
+        [Product],
+        repo_maker={
+            Product: lambda session: SqlAlchemyProductRepository(Product, session)
+        },
+        get_session=get_session,
+    )
+
+
+@pytest.fixture
+def sqlite_uow(sqlite_sessionmaker) -> SqlAlchemyUnitOfWork:
+    return create_uow(sqlite_sessionmaker)
 
 
 @pytest.fixture(scope="module")
@@ -58,8 +80,7 @@ def messagebus() -> Generator[MessageBus, None, None]:
     import warnings
 
     from fastmsa.event import messagebus
-    from tests.app.adapters.repos import SqlAlchemyProductRepository
-    from tests.app.handlers import batch, external  # noqa
+    from tests.app.handlers import allocation, external  # noqa
 
     clear_mappers()
     start_mappers(use_exist=False, init_hooks=[init_mappers])
@@ -68,22 +89,19 @@ def messagebus() -> Generator[MessageBus, None, None]:
         warnings.warn(
             "PostgreSQL server is not running. Falling back to in-memory SQLite DB"
         )
-        set_default_sessionmaker(memory_sessionmaker())
+        set_default_sessionmaker(create_sessionmaker())
 
-    messagebus.uow = SqlAlchemyUnitOfWork(
-        [Product],
-        repo_maker={
-            Product: lambda session: SqlAlchemyProductRepository(Product, session)
-        },
-    )
+    old_uow = messagebus.uow
+    messagebus.uow = create_uow()
+
     yield messagebus
+
+    messagebus.uow = old_uow
 
 
 @pytest.fixture
 def msa(messagebus: MessageBus):
     import warnings
-
-    from sqlalchemy.pool import StaticPool
 
     from tests.app.routes import fastapi  # noqa
 
@@ -112,3 +130,23 @@ def get_session() -> SessionMaker:
     :rtype: :class:`~app.adapters.orm.SessionMaker`
     """
     return init_db(drop_all=False, init_hooks=[init_mappers])
+
+
+from tests.app.domain import Product
+
+
+class FakeProductRepository(FakeRepository[Product]):
+    def _get_by_batchref(self, batchref):
+        return next(
+            (p for p in self._items for b in p.items if b.reference == batchref), None
+        )
+
+
+@pytest.fixture
+def repo():
+    return FakeProductRepository("sku")
+
+
+@pytest.fixture
+def uow(repo: FakeProductRepository):
+    yield FakeUnitOfWork(repos={Product: repo})

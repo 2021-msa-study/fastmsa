@@ -4,8 +4,8 @@ from __future__ import annotations
 from fastmsa.api import app
 from fastmsa.event import messagebus
 from tests.app.domain import commands
-from tests.app.handlers.batch import InvalidSku
-from tests.app.schema.batch import BatchAddSchema, BatchAllocateSchema
+from tests.app.handlers.allocation import InvalidSku
+from tests.app.schema.allocation import BatchAddSchema, BatchAllocateSchema
 
 
 @app.post("/batches", status_code=201)
