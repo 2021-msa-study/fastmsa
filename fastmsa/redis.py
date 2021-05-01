@@ -28,6 +28,10 @@ class RedisConnectInfo:
     def conn_args(self):
         return {"host": self.host, "port": self.port}
 
+    @property
+    def url(self) -> str:
+        return f"redis://{self.host}:{self.port}"
+
 
 ChannelMessageHandler = dict[str, Callable]
 
@@ -71,7 +75,7 @@ class AsyncRedisClient(AbstractPubsubClient):
         info: RedisConnectInfo,
         handlers: ChannelMessageHandler = None,
     ):
-        self.url = f"redis://{info.host}:{info.port}"
+        self.url = info.url
         self.info = info
         self.redis = None
         self.handler = handlers

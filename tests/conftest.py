@@ -9,9 +9,16 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from fastmsa.event import MessageHandlerMap
-from fastmsa.orm import SessionMaker, clear_mappers, init_db, start_mappers
+from fastmsa.event import MessageBus
+from fastmsa.orm import (
+    SessionMaker,
+    clear_mappers,
+    init_db,
+    set_default_sessionmaker,
+    start_mappers,
+)
 from fastmsa.repo import SqlAlchemyRepository
+from fastmsa.test.e2e import FakeRedisClient, check_port_opened
 from fastmsa.uow import SqlAlchemyUnitOfWork
 from tests.app.adapters.orm import init_mappers
 from tests.app.domain.aggregates import Product
@@ -27,35 +34,69 @@ AddStockFunc = Callable[[AddStockLines], None]
 from tests.app.config import Config
 
 
-@pytest.fixture
-def session() -> Session:
-    """테스트에 사용될 새로운 :class:`.Session` 픽스처를 리턴합니다.
-
-    :rtype: :class:`~sqlalchemy.orm.Session`
-    """
+def memory_sessionmaker():
     engine = create_engine(
         "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
     )
     clear_mappers()
     metadata = start_mappers(use_exist=False, init_hooks=[init_mappers])
     metadata.create_all(engine)
-    return sessionmaker(engine)()
-
-
-@pytest.fixture(scope="module")
-def handlers() -> Generator[MessageHandlerMap, None, None]:
-    yield init_handlers()
+    return sessionmaker(engine)
 
 
 @pytest.fixture
-def msa(handlers, session):
+def session() -> Session:
+    """테스트에 사용될 새로운 :class:`.Session` 픽스처를 리턴합니다.
+
+    :rtype: :class:`~sqlalchemy.orm.Session`
+    """
+    return memory_sessionmaker()()
+
+
+@pytest.fixture(scope="module")
+def messagebus() -> Generator[MessageBus, None, None]:
+    import warnings
+
     from fastmsa.event import messagebus
+    from tests.app.adapters.repos import SqlAlchemyProductRepository
+    from tests.app.handlers import batch, external  # noqa
+
+    if not check_port_opened(5432):
+        warnings.warn(
+            "PostgreSQL server is not running. Falling back to in-memory SQLite DB"
+        )
+        set_default_sessionmaker(memory_sessionmaker())
+
+    messagebus.uow = SqlAlchemyUnitOfWork(
+        [Product],
+        repo_maker={
+            Product: lambda session: SqlAlchemyProductRepository(Product, session)
+        },
+    )
+    yield messagebus
+
+
+@pytest.fixture
+def msa(messagebus: MessageBus):
+    import warnings
+
+    from sqlalchemy.pool import StaticPool
+
     from tests.app.routes import fastapi  # noqa
 
-    assert handlers, "Empty handlers!"
+    assert messagebus.handlers, "Empty handlers!"
     msa = Config.load_from_config()
+    old_msa = messagebus.msa
     messagebus.msa = msa  # XXX: Dependency Injection
-    return msa
+
+    if not check_port_opened(6379):
+        warnings.warn("Redis server is not running. Falling back to FakeRedisClient")
+
+    msa.broker.client = FakeRedisClient()
+
+    yield msa
+
+    messagebus.msa = old_msa
 
 
 @pytest.fixture
@@ -69,19 +110,3 @@ def get_session() -> SessionMaker:
     :rtype: :class:`~app.adapters.orm.SessionMaker`
     """
     return init_db(drop_all=False, init_hooks=[init_mappers])
-
-
-def init_handlers() -> MessageHandlerMap:
-    from fastmsa.event import MESSAGE_HANDLERS, messagebus
-    from tests.app.adapters.repos import SqlAlchemyProductRepository
-    from tests.app.handlers import batch, external  # noqa
-
-    messagebus.uow = SqlAlchemyUnitOfWork(
-        [Product],
-        repo_maker={
-            Product: lambda session: SqlAlchemyProductRepository(Product, session)
-        },
-    )
-
-    # 테스트에 의해 글로벌 핸들러 레지스트리가 망가지지 않도록 복사본 리턴.
-    return dict(MESSAGE_HANDLERS)

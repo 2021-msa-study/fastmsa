@@ -9,8 +9,13 @@ from httpx import AsyncClient
 from fastmsa.api import AsyncAPIClient
 from fastmsa.config import FastMSA
 from fastmsa.redis import AsyncRedisClient, RedisMessageBroker
+from fastmsa.test.e2e import check_port_opened
 from tests import random_batchref, random_orderid, random_sku
 from tests.app.domain import commands, events
+
+pytestmark = pytest.mark.skipif(
+    not check_port_opened(6379), reason="Redis server is not running"
+)
 
 
 @pytest.fixture(scope="module")

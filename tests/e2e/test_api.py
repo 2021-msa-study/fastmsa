@@ -13,6 +13,7 @@ from tests import random_batchref, random_orderid, random_sku
 @pytest.fixture
 def client(msa: FastMSA):
     assert 6 == len(app.routes)
+
     yield TestClient(msa.api)
 
 
