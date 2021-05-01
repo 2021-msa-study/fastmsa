@@ -201,61 +201,6 @@ class FastMSACommand:
                     )
             uvicorn.run(app_name, reload=reload)
 
-    def orm(self):
-        from tests.app.domain import Batch, OrderLine, Product  # noqa
-
-        self.banner("ORM Test", icon="📣")
-        self.init_app(init_routes=False)
-
-        with self.msa.uow as uow:
-            repo = cast(SqlAlchemyProductRepository, uow[Product])
-            logger.info("uow: %r", uow)
-            logger.info("repo: %r", repo)
-            test_sku = "TEST-TABLE"
-            test_batchref = "test-batch-001"
-            test_orderid = "test-order-001"
-            product = repo.get(test_sku)
-            if not product:
-                product = Product(test_sku, [])
-                repo.session.add(product)
-
-            repo.session.execute(
-                "DELETE FROM allocation WHERE orderline_id in ("
-                "SELECT id FROM order_line WHERE orderid=:orderid)",
-                dict(orderid=test_orderid),
-            )
-            repo.session.execute(
-                "DELETE FROM order_line WHERE orderid=:orderid",
-                dict(orderid=test_orderid),
-            )
-            repo.session.commit()
-
-            batch = next(it for it in product.items if it.reference == test_batchref)
-            if not batch:
-                batch = Batch(test_batchref, test_sku, 50)
-                repo.session.add(batch)
-
-            line = repo.session.query(OrderLine).filter_by(orderid=test_orderid).first()
-            if not line:
-                line = OrderLine(test_orderid, test_sku, 10)
-
-            # batch.allocate(line)
-            product.allocate(line)
-            repo.session.commit()
-
-            assert 40 == batch.available_quantity
-            assert 1 == len(batch._allocations)
-            logger.info(
-                "allocate batch: %r, avail_qty=%d, allocations=%r",
-                batch.reference,
-                batch.available_quantity,
-                batch._allocations,
-            )
-            allocations = repo.session.execute("SELECT * FROM allocation").all()
-            logger.info("allocations: %r", allocations)
-
-            repo.session.commit()
-
     def broker(self):
         """Redis Message Broker를 실행합니다."""
 

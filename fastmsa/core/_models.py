@@ -22,7 +22,7 @@ from typing import (
     Union,
 )
 
-from fastmsa.core.errors import FastMSAError
+from ._errors import FastMSAError
 
 
 class Entity(Protocol):
