@@ -124,7 +124,7 @@ class FakeMessageBus(MessageBus):
     ):
         # Fake 이벤트라면 이벤트를 실행하지 않고
         # events_published 에 추가하는 Fake 핸들러를 만들어 리턴한다.
-        def get_fake_handler(
+        def make_fake_handlers(
             e: AnyMessageType, handlers: list[Callable]
         ) -> list[Callable]:
             if fake_messages and e in fake_messages:
@@ -135,7 +135,7 @@ class FakeMessageBus(MessageBus):
                 return [fake_handler]
             return handlers
 
-        return {k: get_fake_handler(k, v) for k, v in messagebus.handlers.items()}
+        return {k: make_fake_handlers(k, v) for k, v in messagebus.handlers.items()}
 
     def __init__(
         self,
