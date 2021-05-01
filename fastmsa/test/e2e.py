@@ -1,7 +1,6 @@
 """E2E 테스트 모듈입니다."""
 from collections import defaultdict
 
-
 from fastmsa.core import AbstractPubsubClient
 
 

@@ -4,33 +4,16 @@ from typing import cast
 import pytest
 
 from fastmsa.event import MessageBus, messagebus
-from fastmsa.test.unit import FakeMessageBus, FakeRepository, FakeUnitOfWork
+from fastmsa.test.unit import FakeMessageBus, FakeUnitOfWork
 from tests.app.domain import commands, events
 from tests.app.domain.aggregates import Product
-from tests.app.handlers import batch
-
-
-class FakeProductRepository(FakeRepository[Product]):
-    def _get_by_batchref(self, batchref):
-        return next(
-            (p for p in self._items for b in p.items if b.reference == batchref), None
-        )
-
-
-@pytest.fixture
-def repo():
-    return FakeProductRepository("sku")
-
-
-@pytest.fixture
-def uow(repo: FakeProductRepository):
-    yield FakeUnitOfWork(repos={Product: repo})
+from tests.app.handlers import allocation
 
 
 @pytest.fixture
 def messagebus(uow: FakeUnitOfWork) -> MessageBus:
     from fastmsa.event import messagebus
-    from tests.app.handlers import batch, external  # noqa
+    from tests.app.handlers import allocation, external  # noqa
 
     old_uow = messagebus.uow
     messagebus.uow = uow
@@ -63,7 +46,7 @@ class TestAllocate:
     def test_errors_for_invalid_sku(self, messagebus: MessageBus):
         messagebus.handle(commands.CreateBatch("b1", "AREALSKU", 100, None))
 
-        with pytest.raises(batch.InvalidSku, match="Invalid sku NONEXISTENTSKU"):
+        with pytest.raises(allocation.InvalidSku, match="Invalid sku NONEXISTENTSKU"):
             messagebus.handle(commands.Allocate("o1", "NONEXISTENTSKU", 10))
 
     def test_commits(self, messagebus: MessageBus):

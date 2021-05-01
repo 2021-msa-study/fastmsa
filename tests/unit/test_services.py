@@ -21,7 +21,7 @@ def test_returns_allocation() -> None:
     batch = Batch("b1", "COMPLICATED-LAMP", 100, eta=None)
     product = Product(batch.sku, [batch])
     uow = FakeUnitOfWork({Product: "sku"}, [product])
-    result = services.batch.allocate("o1", "COMPLICATED-LAMP", 10, uow)
+    result = services.allocation.allocate("o1", "COMPLICATED-LAMP", 10, uow)
     assert result == "b1"
 
 
@@ -29,27 +29,31 @@ def test_error_for_invalid_sku() -> None:
     batch = Batch("b1", "AREALSKU", 100, eta=None)
     product = Product(batch.sku, [batch])
     uow = FakeUnitOfWork({Product: "sku"}, [product])
-    with pytest.raises(services.batch.InvalidSku, match="Invalid sku NONEXISTENTSKU"):
-        services.batch.allocate("o1", "NONEXISTENTSKU", 10, uow)
+    with pytest.raises(
+        services.allocation.InvalidSku, match="Invalid sku NONEXISTENTSKU"
+    ):
+        services.allocation.allocate("o1", "NONEXISTENTSKU", 10, uow)
 
 
 def test_commits() -> None:
     batch = Batch("b1", "OMINOUS-MIRROR", 100, eta=None)
     product = Product(batch.sku, [batch])
     uow = FakeUnitOfWork({Product: "sku"}, [product])
-    services.batch.allocate("o1", "OMINOUS-MIRROR", 10, uow)
+    services.allocation.allocate("o1", "OMINOUS-MIRROR", 10, uow)
     assert uow.committed is True
 
 
 def test_allocate_returns_allocation() -> None:
     uow = FakeUnitOfWork({Product: "sku"})
     services.add_batch("batch1", "COMPLICATED-LAMP", 100, None, uow)
-    result = services.batch.allocate("o1", "COMPLICATED-LAMP", 10, uow)
+    result = services.allocation.allocate("o1", "COMPLICATED-LAMP", 10, uow)
     assert "batch1" == result
 
 
 def test_allocate_errors_for_invalid_sku() -> None:
     uow = FakeUnitOfWork({Product: "sku"})
     services.add_batch("b1", "AREALSKU", 100, None, uow)
-    with pytest.raises(services.batch.InvalidSku, match="Invalid sku NONEXISTENTSKU"):
-        services.batch.allocate("o1", "NONEXISTENTSKU", 10, uow)
+    with pytest.raises(
+        services.allocation.InvalidSku, match="Invalid sku NONEXISTENTSKU"
+    ):
+        services.allocation.allocate("o1", "NONEXISTENTSKU", 10, uow)
