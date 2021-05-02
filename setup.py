@@ -29,10 +29,11 @@ setup(
     license="MIT",
     author="Joseph Kim, Benzamin Yoon",
     author_email="cloudeyes@gmail.com",
-    packages=["fastmsa", "fastmsa.test"],
+    packages=["fastmsa", "fastmsa.test", "fastmsa.core"],
     package_data={
         "": extra_files,
         "fastmsa": ["py.typed"],
+        "fastmsa.core": ["py.typed"],
         "fastmsa.test": ["py.typed"],
     },
     url="https://github.com/2021-msa-study/fastmsa",
