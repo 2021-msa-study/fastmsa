@@ -2,6 +2,8 @@
 
 Fast Microservices Architecture Framework.
 
+[![codecov](https://codecov.io/gh/2021-msa-study/fastmsa/branch/main/graph/badge.svg?token=IKCYRJZRKE)](https://codecov.io/gh/2021-msa-study/fastmsa)
+
 ## Installation
 
 ```

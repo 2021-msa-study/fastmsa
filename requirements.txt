@@ -1,3 +1,4 @@
+# For prod and packaging
 fastapi
 uvicorn
 sqlalchemy
@@ -7,8 +8,11 @@ tenacity
 aioredis
 jinja2
 
+# For dev and test
 pytest
 pytest-asyncio
+pytest-cov
+codecov
 httpx
 pylint
 mypy

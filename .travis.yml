@@ -1,0 +1,10 @@
+sudo: false # for speed up the build
+language: python
+python:
+  - 3.9
+install:
+  - pip install -r requirements.txt
+scripts:
+  - pytest --cov=.
+after_success:
+  - codecov
