@@ -12,8 +12,6 @@ from typing import Any, Optional, Sequence, cast
 
 import jinja2
 import uvicorn
-from colorama import Fore, Style
-from colorama import init as init_colors
 from pkg_resources import resource_string
 from sqlalchemy.sql.schema import MetaData
 from starlette.routing import BaseRoute
@@ -22,24 +20,27 @@ from fastmsa.config import FastMSA
 from fastmsa.core import FastMSAError
 from fastmsa.event import MessageHandlerMap
 from fastmsa.logging import get_logger
-from fastmsa.utils import cwd, scan_resource_dir
+from fastmsa.utils import (
+    fg,
+    bold,
+    cwd,
+    scan_resource_dir,
+    Fore,
+    Style,
+)
 
-init_colors()  # For Windows environment
+YELLOW, CYAN, RED, GREEN, WHITE = (
+    Fore.YELLOW,
+    Fore.CYAN,
+    Fore.RED,
+    Fore.GREEN,
+    Fore.WHITE,
+)
+WHITE_EX, CYAN_EX = Fore.LIGHTWHITE_EX, Fore.LIGHTCYAN_EX
+BRIGHT, RESET_ALL = Style.BRIGHT, Style.RESET_ALL
+
 
 logger = get_logger("fastmsa.command")
-
-YELLOW, CYAN, RED = Fore.YELLOW, Fore.CYAN, Fore.RED
-WHITE_EX, CYAN_EX = Fore.LIGHTWHITE_EX, Fore.LIGHTCYAN_EX
-
-
-def fg(text, color=Fore.WHITE):
-    """텍스트를 지정된 ANSI 컬러로 출력합니다."""
-    return f"{color}{text}{Fore.RESET}"
-
-
-def bold(text, color=Fore.WHITE):
-    """텍스트를 지정된 ANSI 컬러와 밝기 효과를 주어 출력합니다."""
-    return f"{Style.BRIGHT}{color}{text}{Style.RESET_ALL}"
 
 
 class FastMSAInitError(FastMSAError):
@@ -120,7 +121,7 @@ class FastMSACommand:
     def init_app(self, init_routes=True):
         """FastMSA 앱을 초기화 합니다."""
         logger.info(bold("Load config and initialize app..."))
-        bullet = bold("✓" if os.name != "nt" else "v", Fore.GREEN)
+        bullet = bold("✓" if os.name != "nt" else "v", GREEN)
 
         logger.info(
             f"{bullet} init {fg('domain models', CYAN)}... %s",
@@ -182,9 +183,11 @@ class FastMSACommand:
     ):
         """FastMSA 애플리케이션을 실행합니다."""
         if banner:
-            msg = (
-                f"{Fore.CYAN}{Style.BRIGHT}Launching FastMSA: "
-                f"{Fore.WHITE}{Style.BRIGHT}{self.msa.name}{Style.RESET_ALL}"
+            msg = "".join(
+                [
+                    bold("Launching FastMSA: ", CYAN),
+                    bold(self.msa.title, WHITE),
+                ]
             )
             self.banner(msg, icon="🚀")
 
@@ -200,20 +203,6 @@ class FastMSACommand:
                         content + "\nfrom colorama import init; init()"
                     )
             uvicorn.run(app_name, reload=reload)
-
-    def broker(self):
-        """Redis Message Broker를 실행합니다."""
-
-        self.banner("Launching Redis Consumer", icon="📣")
-        self.init_app(init_routes=False)
-
-        if not self.broker:
-            raise FastMSAError("External MessageBroker is not initialized!")
-
-        if not self.msa.allow_external_event:
-            raise FastMSAError("External events are not allowed!")
-
-        asyncio.run(self.msa.broker.main())
 
     def load_domain(self) -> list[type]:
         """도메인 클래스를 로드합니다.
@@ -332,7 +321,6 @@ class FastMSACommandParser:
             self._cmd.info,
             self._cmd.init,
             self._cmd.run,
-            self._cmd.broker,
         ]:
             command = handler.__name__
             # 핸들러 함수의 주석을 커맨드라인 도움말로 변환하기 위한 작업입니다.
