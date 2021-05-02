@@ -11,7 +11,7 @@ from typing import Any, Optional, Type, cast
 
 from sqlalchemy.pool import Pool, StaticPool
 
-from fastmsa.core import AbstractFastMSA, AbstractMessageBroker
+from fastmsa.core import AbstractFastMSA, AbstractMessageBroker, FastMSAInitError
 from fastmsa.redis import RedisConnectInfo
 
 
@@ -53,7 +53,7 @@ class FastMSA(AbstractFastMSA):
     def load_from_config(path=Path(".")) -> FastMSA:
         """`name` 정보를 이용해  `config.py` 를 로드한다."""
         cfg = load_setupcfg(path)
-        name = path.name
+        name = cfg.name or path.absolute().name
         module_name = name
         module_path = Path(".") / name
         is_implicit_name = True
@@ -66,7 +66,7 @@ class FastMSA(AbstractFastMSA):
             if cfg.module_path:
                 module_path = Path(cfg.module_path)
             elif module_name:
-                module_path = Path(module_name.replace(".", "/"))
+                module_path = Path(".") / Path(module_name.replace(".", "/"))
 
         abs_path = str(path.absolute())
         assert name.isidentifier()
@@ -79,7 +79,7 @@ class FastMSA(AbstractFastMSA):
             UserConfig = cast(Type[FastMSA], getattr(conf_module, "Config"))
             # config.py 파일이 발견되면 이 설정을 로드합니다.
         else:
-            UserConfig = FastMSA
+            raise FastMSAInitError("config.py not exists in path: " + str(module_path))
 
         # 만일 setup.cfg 를 덮어씌우는 UserSetting 이 있다면 이걸 먼저 사용한다.
 

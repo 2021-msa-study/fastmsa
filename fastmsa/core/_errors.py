@@ -6,3 +6,9 @@ class FastMSAError(Exception):
         self.message = message
 
     ...
+
+
+class FastMSAInitError(FastMSAError):
+    """프로젝트 초기화 실패 에러."""
+
+    ...

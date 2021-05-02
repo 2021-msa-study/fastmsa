@@ -8,7 +8,8 @@ msa = cmd.init_app()
 
 @app.on_event("startup")
 async def initial_task():
-    asyncio.create_task(msa.broker.main())
+    if msa.allow_external_event:
+        asyncio.create_task(msa.broker.main())
 
 
 if __name__ == "__main__":

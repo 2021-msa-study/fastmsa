@@ -17,7 +17,7 @@ from sqlalchemy.sql.schema import MetaData
 from starlette.routing import BaseRoute
 
 from fastmsa.config import FastMSA
-from fastmsa.core import FastMSAError
+from fastmsa.core import FastMSAError, FastMSAInitError
 from fastmsa.event import MessageHandlerMap
 from fastmsa.logging import get_logger
 from fastmsa.utils import (
@@ -41,12 +41,6 @@ BRIGHT, RESET_ALL = Style.BRIGHT, Style.RESET_ALL
 
 
 logger = get_logger("fastmsa.command")
-
-
-class FastMSAInitError(FastMSAError):
-    """프로젝트 초기화 실패 에러."""
-
-    ...
 
 
 class FastMSACommand:

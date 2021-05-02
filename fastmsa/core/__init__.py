@@ -1,4 +1,4 @@
-from ._errors import FastMSAError  # noqa
+from ._errors import FastMSAError, FastMSAInitError  # noqa
 from ._models import (  # noqa
     AbstractChannelListener,
     AbstractFastMSA,
