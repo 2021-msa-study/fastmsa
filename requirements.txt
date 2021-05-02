@@ -7,6 +7,7 @@ psycopg2-binary
 tenacity
 aioredis
 jinja2
+colorama
 
 # For dev and test
 pytest
