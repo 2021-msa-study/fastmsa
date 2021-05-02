@@ -4,6 +4,7 @@ import asyncio
 import json
 from dataclasses import asdict, dataclass, is_dataclass
 from typing import Callable, Optional
+from signal import SIGINT, SIGTERM
 
 import aioredis  # type: ignore
 
@@ -15,6 +16,7 @@ from fastmsa.core import (
 )
 from fastmsa.event import messagebroker
 from fastmsa.logging import get_logger
+from fastmsa.utils import bold, Fore
 
 logger = get_logger("fastmsa.redis")
 
@@ -50,10 +52,11 @@ class AsyncRedisListener(AbstractChannelListener):
 
     async def listen(self, *args, **kwargs) -> list[asyncio.Task]:
         async def reader(channel, handler):
-            logger.debug("Listen from channel: %r", channel)
+            channel_name = channel.name.decode()
+            logger.info("Listen from channel: %s", bold(channel_name, Fore.MAGENTA))
             async for msg in channel.iter(encoding="utf8"):
                 data = json.loads(msg)
-                logger.debug("Got message in channel: %r: %r", ch.name, data)
+                logger.debug("Got message in channel: %s: %r", channel_name, data)
                 if asyncio.iscoroutinefunction(handler):
                     await handler(self.redis, data)
                 else:
@@ -108,7 +111,7 @@ class AsyncRedisClient(AbstractPubsubClient):
             loop = None
 
         if loop and loop.is_running():
-            tsk = loop.create_task(self.publish_message(channel, message))
+            loop.create_task(self.publish_message(channel, message))
         else:
             asyncio.run(self.publish_message(channel, message))
 
@@ -151,10 +154,15 @@ class RedisMessageBroker(AbstractMessageBroker):
         return await self.client.subscribe_to(*channels)
 
     async def main(self, wait_until_close=True):
-        tasks = await (await self.listener).listen()
+        tasks = []
+        logger.info(f"{bold('RedisMessageBroker')} started...")
         try:
+            tasks = await (await self.listener).listen()
             if wait_until_close:
                 await asyncio.gather(*tasks)
+        except:
+            for task in tasks:
+                task.cancel()
         finally:
             if self.client:
                 await self.client.wait_closed()

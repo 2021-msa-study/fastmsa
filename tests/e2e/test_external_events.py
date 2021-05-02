@@ -79,7 +79,7 @@ async def test_change_batch_quantity_leading_to_reallocation(
             break
 
     try:
-        await asyncio.wait_for(test(), timeout=1)
+        await asyncio.wait_for(test(), timeout=3)
     except asyncio.TimeoutError:
         raise
     finally:

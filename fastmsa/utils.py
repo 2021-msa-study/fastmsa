@@ -4,6 +4,21 @@ from pathlib import Path
 from typing import Generator
 
 from pkg_resources import resource_isdir, resource_listdir
+from colorama import init as init_colors
+
+init_colors()  # For Windows environment
+
+from colorama import Fore, Style
+
+
+def fg(text, color=Fore.WHITE):
+    """텍스트를 지정된 ANSI 컬러로 출력합니다."""
+    return f"{color}{text}{Fore.RESET}"
+
+
+def bold(text, color=Fore.WHITE):
+    """텍스트를 지정된 ANSI 컬러와 밝기 효과를 주어 출력합니다."""
+    return f"{Style.BRIGHT}{color}{text}{Style.RESET_ALL}"
 
 
 @contextmanager

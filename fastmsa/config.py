@@ -54,7 +54,6 @@ class FastMSA(AbstractFastMSA):
         """`name` 정보를 이용해  `config.py` 를 로드한다."""
         cfg = load_setupcfg(path)
         name = path.name
-        title = name
         module_name = name
         module_path = Path(".") / name
         is_implicit_name = True
@@ -63,7 +62,6 @@ class FastMSA(AbstractFastMSA):
             is_implicit_name = False
             name = cfg.name
             module_name = cfg.module_name or module_name
-            title = cfg.title or title
 
             if cfg.module_path:
                 module_path = Path(cfg.module_path)
@@ -71,14 +69,6 @@ class FastMSA(AbstractFastMSA):
                 module_path = Path(module_name.replace(".", "/"))
 
         abs_path = str(path.absolute())
-        kwargs = dict(
-            name=name,
-            title=title,
-            module_name=module_name,
-            module_path=module_path,
-            is_implicit_name=is_implicit_name,
-        )
-
         assert name.isidentifier()
 
         if (module_path / "config.py").exists():
@@ -86,11 +76,22 @@ class FastMSA(AbstractFastMSA):
                 sys.path.insert(0, abs_path)
 
             conf_module = importlib.import_module(f"{module_name}.config")
-            config = cast(Type[FastMSA], getattr(conf_module, "Config"))
+            UserConfig = cast(Type[FastMSA], getattr(conf_module, "Config"))
             # config.py 파일이 발견되면 이 설정을 로드합니다.
-            return cast(FastMSA, config(**kwargs))
+        else:
+            UserConfig = FastMSA
 
-        return FastMSA(**kwargs)
+        # 만일 setup.cfg 를 덮어씌우는 UserSetting 이 있다면 이걸 먼저 사용한다.
+
+        kwargs = dict(
+            name=name,
+            title=cfg.title or UserConfig.title or name,
+            module_name=module_name,
+            module_path=module_path,
+            is_implicit_name=is_implicit_name,
+        )
+
+        return UserConfig(**kwargs)
 
     @property
     def api(self):
