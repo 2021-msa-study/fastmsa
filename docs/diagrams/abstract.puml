@@ -32,12 +32,17 @@ package fastmsa {
 
         AbstractMSA "uow" --> AbstractUnitOfWork
         AbstractMSA "broker" --> AbstractMessageBroker
-        AbstractMSA "api" --> AbstractAPI
+        AbstractMSA "\n\tapi" --> AbstractAPI
+        AbstractMSA "messagebus" -> AbstractMessageHandler: \t\t
         
         AbstractRepository <- AbstractUnitOfWork
+        
+        interface AbstractMessageHandler {
+            client: AbstractPubsubClient
+        }
 
-        interface AbstractMessageBroker
-        interface AbstractPubsubClient
+        interface AbstractMessageBroker extends AbstractMessageHandler {
+        }
     }
 
     abstract class FastMSA {
@@ -55,16 +60,20 @@ package fastmsa {
     class RedisMessageBroker <<optional>> {
         client: AbstractPubsubClient
     }
-    AbstractPubsubClient <-- RedisMessageBroker
 
-    FastAPIAdapter <.. FastMSA
-    RedisMessageBroker <.. FastMSA
-    SqlAlchemyUnitOfWork <.. FastMSA
+    FastAPIAdapter <-- FastMSA
+    RedisMessageBroker <-- FastMSA
+    SqlAlchemyUnitOfWork <-- FastMSA
 
     class FastMSACommand <<bootstrapper>> {
     }
 
     class FastMSACommandParser
+    
+    AbstractMessageHandler <|--- MessageBus
+
+    FastMSA -> MessageBus
+    
 }
 
 package <<site-packages>> {
@@ -88,7 +97,8 @@ card "User's App" as userapp  {
     file "setup.cfg" as f
     folder app {
         package domain
-        package handlers
+        package handlers <<Command>>
+        package views <<Query>>
         package routes
         package adapters
     }

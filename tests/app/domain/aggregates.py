@@ -74,3 +74,6 @@ class Product(Aggregate[Batch]):
                 self.messages.append(
                     commands.Allocate(line.orderid, line.sku, line.qty)
                 )
+                self.messages.append(
+                    events.Deallocated(line.orderid, line.sku, line.qty)
+                )

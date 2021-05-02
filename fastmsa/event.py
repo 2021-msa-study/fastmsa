@@ -16,7 +16,9 @@ from uvicorn.logging import DefaultFormatter
 
 from fastmsa.core import (
     AbstractFastMSA,
+    AbstractMessageBroker,
     AbstractMessageHandler,
+    AbstractPubsubClient,
     AnyMessageType,
     Command,
     Event,
@@ -46,9 +48,32 @@ class MessageBus(AbstractMessageHandler):
         self,
         handlers: MessageHandlerMap,
         msa: Optional[AbstractFastMSA] = None,
+        uow: Optional[AbstractUnitOfWork] = None,
+        pubsub: Optional[AbstractPubsubClient] = None,
+        broker: Optional[AbstractMessageBroker] = None,
     ):
         self.handlers = handlers
-        self.msa = msa or self.msa
+        self._msa = msa
+        self.uow, self.broker, self.pubsub = uow, broker, pubsub
+        if msa:
+            self.uow = msa.uow
+            self.broker = msa.broker
+            if msa.broker:
+                self.pubsub = msa.broker.client
+
+    @property
+    def msa(self) -> Optional[AbstractFastMSA]:
+        return self._msa
+
+    @msa.setter
+    def msa(self, new_msa: Optional[AbstractFastMSA]):
+        """`FastMSA` 설정이 바뀌면 관련 의존성을 같이 업데이트합니다."""
+        if new_msa:
+            self._msa = new_msa
+            self.uow = new_msa.uow
+            self.broker = new_msa.broker
+            if new_msa.broker:
+                self.pubsub = new_msa.broker.client
 
     def handle(self, message: Message, uow: Optional[AbstractUnitOfWork] = None):  # type: ignore
         queue = [message]
@@ -120,9 +145,8 @@ class MessageBus(AbstractMessageHandler):
         args = {
             "uow": uow if "uow" in params else False,
             "msa": self.msa if "msa" in params else False,
-            "broker": self.msa.broker
-            if "broker" in params and self.msa and self.msa.broker
-            else False,
+            "pubsub": self.pubsub if "pubsub" in params else False,
+            "broker": self.broker if "broker" in params else False,
         }
 
         missing = {k: v for k, v in args.items() if v is None}
