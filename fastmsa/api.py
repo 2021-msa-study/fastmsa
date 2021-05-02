@@ -2,7 +2,6 @@
 from typing import Any, Callable
 
 import httpx
-import requests
 from fastapi import FastAPI
 
 from fastmsa.core import AbstractFastMSA
@@ -27,30 +26,6 @@ def init_app(
     init_db()
 
     return app
-
-
-class APIClient:
-    def __init__(self, session: requests.Session):
-        self.session = session
-
-    def post_to_add_batch(self, ref: str, sku: str, qty: int, eta: str):
-        r = self.session.post(
-            "/batches", json={"ref": ref, "sku": sku, "qty": qty, "eta": eta}
-        )
-        assert r.status_code == 201
-
-    def post_to_allocate(self, orderid, sku, qty, expect_success=True):
-        r = self.session.post(
-            "/batches/allocate",
-            json={
-                "orderid": orderid,
-                "sku": sku,
-                "qty": qty,
-            },
-        )
-        if expect_success:
-            assert r.status_code == 201
-        return r
 
 
 class AsyncAPIClient:
