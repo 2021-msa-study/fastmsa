@@ -7,10 +7,12 @@
         "*.egg-info": true,
         "**/build": true,
         "**/dist": true,
+        "**/.venv": true,
     },
     "python.workspaceSymbols.exclusionPatterns": [
         "build/**",
         "dist/**",
+        ".venv/**",
     ],
     "python.testing.pytestArgs": [
         "tests"
@@ -26,5 +28,6 @@
     "python.formatting.provider": "black",
     "python.languageServer": "Pylance",
     "python.analysis.typeCheckingMode": "basic",
-    "editor.formatOnSave": true
+    "python.pythonPath": "${workplaceFolder}/.venv/fastmsa",
+    "editor.formatOnSave": true,
 }
