@@ -1,4 +1,4 @@
-@startuml "Dependency Architecture Overview"
+@startuml "overview"
 
 hide empty members
 skinparam defaultFontName "Segoe UI"
@@ -37,11 +37,11 @@ package fastmsa {
         
         AbstractRepository <- AbstractUnitOfWork
         
-        interface AbstractMessageHandler {
+        abstract class AbstractMessageHandler {
             client: AbstractPubsubClient
         }
 
-        interface AbstractMessageBroker extends AbstractMessageHandler {
+        abstract class AbstractMessageBroker extends AbstractMessageHandler {
         }
     }
 
@@ -114,9 +114,9 @@ FastMSACommandParser <-[thickness=3]- User: "executes:\n<b>msa run</b>"
 FastMSACommandParser -> FastMSACommand
 FastMSACommand -> FastMSA
 FastMSACommand ..> f: "1) reads"
-FastMSACommand ..> userapp: "2) import\nmodules"
+FastMSACommand ..> userapp: "2) imports\nmodules"
 FastMSACommand ..> DB: "3) connects\nto"
 
-core <--- app: depends on\nabstraction
+core <--- app: depends on\nabstractions
 
 @endul
