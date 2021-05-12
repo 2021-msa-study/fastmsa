@@ -4,7 +4,6 @@ import asyncio
 import json
 from dataclasses import asdict, dataclass, is_dataclass
 from typing import Callable, Optional
-from signal import SIGINT, SIGTERM
 
 import aioredis  # type: ignore
 
@@ -16,7 +15,7 @@ from fastmsa.core import (
 )
 from fastmsa.event import messagebroker
 from fastmsa.logging import get_logger
-from fastmsa.utils import bold, Fore
+from fastmsa.utils import Fore, bold
 
 logger = get_logger("fastmsa.redis")
 

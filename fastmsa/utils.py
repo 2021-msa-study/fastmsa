@@ -3,8 +3,8 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Generator
 
-from pkg_resources import resource_isdir, resource_listdir
 from colorama import init as init_colors
+from pkg_resources import resource_isdir, resource_listdir
 
 init_colors()  # For Windows environment
 

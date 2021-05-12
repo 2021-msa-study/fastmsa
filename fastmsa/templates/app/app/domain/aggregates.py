@@ -1,5 +1,5 @@
 """Aggregate models."""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from fastmsa.core import Aggregate
 
@@ -11,5 +11,5 @@ class Product(Aggregate[Item]):
     """Sample aggregate model."""
 
     id: int
-    items: list[Item]
+    items: list[Item] = field(default_factory=list)
     version_number: int = 0

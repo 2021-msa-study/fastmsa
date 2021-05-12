@@ -1,5 +1,4 @@
 """Command line script for FastMSA."""
-import asyncio
 import glob
 import importlib
 import os
@@ -17,17 +16,10 @@ from sqlalchemy.sql.schema import MetaData
 from starlette.routing import BaseRoute
 
 from fastmsa.config import FastMSA
-from fastmsa.core import FastMSAError, FastMSAInitError
+from fastmsa.core import AbstractFastMSA, FastMSAError, FastMSAInitError
 from fastmsa.event import MessageHandlerMap
 from fastmsa.logging import get_logger
-from fastmsa.utils import (
-    fg,
-    bold,
-    cwd,
-    scan_resource_dir,
-    Fore,
-    Style,
-)
+from fastmsa.utils import Fore, Style, bold, cwd, fg, scan_resource_dir
 
 YELLOW, CYAN, RED, GREEN, WHITE = (
     Fore.YELLOW,
@@ -38,6 +30,8 @@ YELLOW, CYAN, RED, GREEN, WHITE = (
 )
 WHITE_EX, CYAN_EX = Fore.LIGHTWHITE_EX, Fore.LIGHTCYAN_EX
 BRIGHT, RESET_ALL = Style.BRIGHT, Style.RESET_ALL
+
+TEMPLATE_DIR = "templates/app"
 
 
 logger = get_logger("fastmsa.command")
@@ -59,9 +53,10 @@ class FastMSACommand:
         if self.msa.is_implicit_name:
             # 앞에서 어떤 경우에도 이름을 못얻으면 현재 경로를 암시적으로
             # 이름으로 정한다.
-            self.print_warn(
-                f"app name is implicitly given as *{bold(self.msa.name)}* by the current path."
-            )
+            # self.print_warn(
+            #    f"app name is implicitly given as *{bold(self.msa.name)}* by the current path."
+            # )
+            ...
 
     def print_warn(self, msg: str):
         print(f"{bold('FastMSA WARNING:', YELLOW)} {msg}")
@@ -83,8 +78,7 @@ class FastMSACommand:
                 raise FastMSAInitError(f"project already initialized at: {self.path}")
 
         with cwd(self.path):
-            template_dir = "templates/app"
-            res_names = scan_resource_dir(template_dir)
+            res_names = scan_resource_dir(TEMPLATE_DIR)
 
             assert res_names
 
@@ -96,7 +90,7 @@ class FastMSACommand:
                 # XXX: Temporary fix
                 if "__pycache__" in res_name:
                     continue
-                rel_path = res_name2.replace(template_dir + "/", "")
+                rel_path = res_name2.replace(TEMPLATE_DIR + "/", "")
                 target_path = self.path / rel_path
                 target_path.parent.mkdir(parents=True, exist_ok=True)
                 text = resource_string("fastmsa", res_name)
@@ -105,7 +99,7 @@ class FastMSACommand:
                 if target_path.name.endswith(".j2"):  # Jinja2 template
                     target_path = target_path.parent / target_path.name[:-3]
                     template = jinja2.Template(text)
-                    text = template.render(msa=self)
+                    text = template.render(msa=self.msa)
 
                 target_path.write_text(text)
 
@@ -275,7 +269,9 @@ class FastMSACommand:
             if r.endpoint.__module__.startswith(self.msa.module_name + ".routes")
         ]
 
-    def load_msg_handlers(self) -> MessageHandlerMap:
+    def load_msg_handlers(
+        self, msa: Optional[AbstractFastMSA] = None
+    ) -> MessageHandlerMap:
         from fastmsa.event import MESSAGE_HANDLERS, messagebus
 
         modules = []
@@ -289,8 +285,8 @@ class FastMSACommand:
             module = importlib.import_module(module_name)
             modules.append(module)
 
-        messagebus.msa = self.msa  # Dependency Injection
-        messagebus.uow = self.msa.uow
+        messagebus.msa = msa or self.msa  # Dependency Injection
+        messagebus.uow = (msa and msa.uow) or self.msa.uow
 
         return MESSAGE_HANDLERS
 
