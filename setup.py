@@ -25,7 +25,7 @@ setup(
     description="FastMSA - full-stack framework for microservice architecture applications",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    version="0.2",
+    version="0.3",
     license="MIT",
     author="Joseph Kim, Benzamin Yoon",
     author_email="cloudeyes@gmail.com",
