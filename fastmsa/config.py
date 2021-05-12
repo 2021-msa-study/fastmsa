@@ -11,7 +11,7 @@ from typing import Any, Optional, Type, cast
 
 from sqlalchemy.pool import Pool, StaticPool
 
-from fastmsa.core import AbstractFastMSA, AbstractMessageBroker, FastMSAInitError
+from fastmsa.core import AbstractFastMSA, AbstractMessageBroker
 from fastmsa.redis import RedisConnectInfo
 
 

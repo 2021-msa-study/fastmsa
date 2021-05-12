@@ -1,5 +1,4 @@
 """Command line script for FastMSA."""
-import asyncio
 import glob
 import importlib
 import os
@@ -17,17 +16,10 @@ from sqlalchemy.sql.schema import MetaData
 from starlette.routing import BaseRoute
 
 from fastmsa.config import FastMSA
-from fastmsa.core import FastMSAError, FastMSAInitError, AbstractFastMSA
+from fastmsa.core import AbstractFastMSA, FastMSAError, FastMSAInitError
 from fastmsa.event import MessageHandlerMap
 from fastmsa.logging import get_logger
-from fastmsa.utils import (
-    fg,
-    bold,
-    cwd,
-    scan_resource_dir,
-    Fore,
-    Style,
-)
+from fastmsa.utils import Fore, Style, bold, cwd, fg, scan_resource_dir
 
 YELLOW, CYAN, RED, GREEN, WHITE = (
     Fore.YELLOW,

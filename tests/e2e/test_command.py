@@ -2,16 +2,17 @@
 
 TODO: Unit Test로 분리할 부분이 있는지 확인.
 """
-from unittest.mock import MagicMock, patch
-import sys
-import shutil
-import tempfile
 import importlib
 import importlib.util
+import shutil
+import sys
+import tempfile
+from unittest.mock import MagicMock, patch
+
 import pytest
 
+from fastmsa.command import TEMPLATE_DIR, FastMSACommand
 from fastmsa.utils import cwd, scan_resource_dir
-from fastmsa.command import FastMSACommand, TEMPLATE_DIR
 
 
 @pytest.fixture
