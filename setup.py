@@ -37,7 +37,7 @@ setup(
         "fastmsa.test": ["py.typed"],
     },
     url="https://github.com/2021-msa-study/fastmsa",
-    download_url="https://github.com/2021-msa-study/fastmsa/archive/v0.2.tar.gz",
+    download_url="https://github.com/2021-msa-study/fastmsa/archive/v0.3.tar.gz",
     keywords=["fastmsa", "microservice" "framework", "sqlalchemy", "fastapi"],
     install_requires=[
         "fastapi",
