@@ -13,7 +13,7 @@ class Config(FastMSA):
 
     @property
     def uow(self):
-        from fastmsa.uow import SqlAlchemyUnitOfWork 
+        from fastmsa.uow import SqlAlchemyUnitOfWork, RepoMakerDict
         from fastmsa.repo import SqlAlchemyRepository
         from {{msa.name}}.domain.aggregates import Product
 
