@@ -25,7 +25,7 @@ setup(
     description="FastMSA - full-stack framework for microservice architecture applications",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    version="0.2",
+    version="0.3",
     license="MIT",
     author="Joseph Kim, Benzamin Yoon",
     author_email="cloudeyes@gmail.com",
@@ -37,7 +37,7 @@ setup(
         "fastmsa.test": ["py.typed"],
     },
     url="https://github.com/2021-msa-study/fastmsa",
-    download_url="https://github.com/2021-msa-study/fastmsa/archive/v0.2.tar.gz",
+    download_url="https://github.com/2021-msa-study/fastmsa/archive/v0.3.tar.gz",
     keywords=["fastmsa", "microservice" "framework", "sqlalchemy", "fastapi"],
     install_requires=[
         "fastapi",
