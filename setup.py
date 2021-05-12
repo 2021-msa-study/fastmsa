@@ -1,4 +1,5 @@
 import os
+import fastmsa
 from os import path
 
 from setuptools import setup
@@ -20,12 +21,14 @@ this_dir = path.abspath(path.dirname(__file__))
 with open(path.join(this_dir, "README.md")) as f:
     long_description = f.read()
 
+version = fastmsa.__version__
+
 setup(
     name="FastMSA",
     description="FastMSA - full-stack framework for microservice architecture applications",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    version="0.3",
+    version=version,
     license="MIT",
     author="Joseph Kim, Benzamin Yoon",
     author_email="cloudeyes@gmail.com",
@@ -37,7 +40,7 @@ setup(
         "fastmsa.test": ["py.typed"],
     },
     url="https://github.com/2021-msa-study/fastmsa",
-    download_url="https://github.com/2021-msa-study/fastmsa/archive/v0.3.tar.gz",
+    download_url=f"https://github.com/2021-msa-study/fastmsa/archive/v{version}.tar.gz",
     keywords=["fastmsa", "microservice" "framework", "sqlalchemy", "fastapi"],
     install_requires=[
         "fastapi",
@@ -49,6 +52,7 @@ setup(
         "tenacity",
         "aioredis",
         "httpx",
+        "requests",  # starlette's dependency for TestClient
     ],
     classifiers=[
         "Development Status :: 3 - Alpha",
