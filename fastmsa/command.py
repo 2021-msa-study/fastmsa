@@ -17,7 +17,7 @@ from sqlalchemy.sql.schema import MetaData
 from starlette.routing import BaseRoute
 
 from fastmsa.config import FastMSA
-from fastmsa.core import FastMSAError, FastMSAInitError
+from fastmsa.core import FastMSAError, FastMSAInitError, AbstractFastMSA
 from fastmsa.event import MessageHandlerMap
 from fastmsa.logging import get_logger
 from fastmsa.utils import (
@@ -277,7 +277,9 @@ class FastMSACommand:
             if r.endpoint.__module__.startswith(self.msa.module_name + ".routes")
         ]
 
-    def load_msg_handlers(self) -> MessageHandlerMap:
+    def load_msg_handlers(
+        self, msa: Optional[AbstractFastMSA] = None
+    ) -> MessageHandlerMap:
         from fastmsa.event import MESSAGE_HANDLERS, messagebus
 
         modules = []
@@ -291,8 +293,8 @@ class FastMSACommand:
             module = importlib.import_module(module_name)
             modules.append(module)
 
-        messagebus.msa = self.msa  # Dependency Injection
-        messagebus.uow = self.msa.uow
+        messagebus.msa = msa or self.msa  # Dependency Injection
+        messagebus.uow = (msa and msa.uow) or self.msa.uow
 
         return MESSAGE_HANDLERS
 
