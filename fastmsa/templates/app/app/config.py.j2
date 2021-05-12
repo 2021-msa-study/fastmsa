@@ -11,6 +11,18 @@ class Config(FastMSA):
 
     title = "{{msa.name.capitalize()}}"
 
+    @property
+    def uow(self):
+        from fastmsa.uow import SqlAlchemyUnitOfWork, RepoMakerDict
+        from fastmsa.repo import SqlAlchemyRepository
+        from {{msa.name}}.domain.aggregates import Product
+
+        repo_maker: RepoMakerDict = {
+            Product: lambda session: SqlAlchemyRepository(Product, session)
+        }
+
+        return SqlAlchemyUnitOfWork([Product], repo_maker=repo_maker)
+
     def get_db_url(self) -> str:
         """SqlAlchemy 에서 사용 가능한 형식의 DB URL을 리턴합니다.
 
