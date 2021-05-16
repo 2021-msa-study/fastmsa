@@ -54,19 +54,26 @@ class AsyncRedisListener(AbstractChannelListener):
             channel_name = channel.name.decode()
             logger.info("Listen from channel: %s", bold(channel_name, Fore.MAGENTA))
             async for msg in channel.iter(encoding="utf8"):
-                data = json.loads(msg)
-                logger.debug("Got message in channel: %s: %r", channel_name, data)
-                if asyncio.iscoroutinefunction(handler):
-                    await handler(self.redis, data)
-                else:
-                    handler(self.redis, data)
+                try:
+                    data = json.loads(msg)
+                    logger.debug("Got message in channel: %s: %r", channel_name, data)
+                    if asyncio.iscoroutinefunction(handler):
+                        await handler(self.redis, data)
+                    else:
+                        handler(self.redis, data)
+                except Exception as e:
+                    logger.exception(
+                        "%s on %s",
+                        type(e).__qualname__,
+                        bold(channel_name, Fore.MAGENTA),
+                    )
 
         self.tasks = []
         for ch in self.channels:
             channel_name = ch.name.decode()
             assert self.handlers
             handler = self.handlers[channel_name]
-            self.tasks.append(asyncio.create_task(reader(ch, handler)))
+            self.tasks.append(reader(ch, handler))
 
         return self.tasks
 
@@ -160,8 +167,9 @@ class RedisMessageBroker(AbstractMessageBroker):
             if wait_until_close:
                 await asyncio.gather(*tasks)
         except:
-            for task in tasks:
-                task.cancel()
+            # for task in tasks:
+            #    task.cancel()
+            ...
         finally:
             if self.client:
                 await self.client.wait_closed()
