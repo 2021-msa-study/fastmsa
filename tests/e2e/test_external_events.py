@@ -83,9 +83,6 @@ async def test_change_batch_quantity_leading_to_reallocation(
     except asyncio.TimeoutError:
         raise
     finally:
-        for task in tasks:
-            task.cancel()
-
         await redis_client.wait_closed()
 
         broker = cast(RedisMessageBroker, msa.broker)
