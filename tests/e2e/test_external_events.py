@@ -50,7 +50,9 @@ async def test_change_batch_quantity_leading_to_reallocation(
 ):
     msa.allow_external_event = True
     listener = await msa.broker.listener
-    tasks: list[asyncio.Task] = await listener.listen()
+    tasks: list[asyncio.Task] = [
+        asyncio.create_task(it) for it in await listener.listen()
+    ]
 
     async def test():
         # start with two batches and an order allocated to one of them
@@ -83,6 +85,9 @@ async def test_change_batch_quantity_leading_to_reallocation(
     except asyncio.TimeoutError:
         raise
     finally:
+        for task in tasks:
+            task.cancel()
+
         await redis_client.wait_closed()
 
         broker = cast(RedisMessageBroker, msa.broker)
