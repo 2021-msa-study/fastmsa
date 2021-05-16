@@ -101,7 +101,7 @@ class FastMSACommand:
                     template = jinja2.Template(text)
                     text = template.render(msa=self.msa)
 
-                target_path.write_text(text)
+                target_path.write_text(text, encoding="utf8")
 
             # if self._name:
             #    (self.path / "app").rename(self._name)
@@ -190,7 +190,7 @@ class FastMSACommand:
                     uvicorn_init.write_text(
                         content + "\nfrom colorama import init; init()"
                     )
-            uvicorn.run(app_name, reload=reload)
+            uvicorn.run(app_name, reload=reload, port=self.msa.get_api_port())
 
     def load_domain(self) -> list[type]:
         """도메인 클래스를 로드합니다.

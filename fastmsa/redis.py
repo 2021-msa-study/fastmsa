@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 from dataclasses import asdict, dataclass, is_dataclass
-from typing import Callable, Optional
+from typing import Callable, Optional, Any
 
 import aioredis  # type: ignore
 
@@ -49,7 +49,7 @@ class AsyncRedisListener(AbstractChannelListener):
         self.redis = redis
         self.tasks = list[asyncio.Task]()
 
-    async def listen(self, *args, **kwargs) -> list[asyncio.Task]:
+    async def listen(self) -> list[asyncio.Task[Any]]:
         async def reader(channel, handler):
             channel_name = channel.name.decode()
             logger.info("Listen from channel: %s", bold(channel_name, Fore.MAGENTA))

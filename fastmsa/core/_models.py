@@ -104,16 +104,17 @@ class AbstractPubsub(Protocol):
         ...
 
 
+Channel = Union[str, Type[Message]]
+
+
 class AbstractPubsubClient(Protocol):
-    async def subscribe_to(
-        self, *channels: Union[str, Type]
-    ) -> AbstractChannelListener:
+    async def subscribe_to(self, *channels: Channel) -> AbstractChannelListener:
         ...
 
-    async def publish_message(self, channel: Union[str, Type], message: Any):
+    async def publish_message(self, channel: Channel, message: Any):
         ...
 
-    def publish_message_sync(self, channel: Union[str, Type], message: Any):
+    def publish_message_sync(self, channel: Channel, message: Any):
         ...
 
     async def wait_closed(self):
@@ -156,7 +157,7 @@ class AbstractMessageHandler(Protocol):
 
 
 class AbstractChannelListener(Protocol):
-    async def listen(self, *args, **kwargs) -> list[asyncio.Task]:
+    async def listen(self) -> list[asyncio.Task[Any]]:
         ...
 
 
