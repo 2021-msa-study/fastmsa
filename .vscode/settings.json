@@ -28,6 +28,6 @@
     "python.formatting.provider": "black",
     "python.languageServer": "Pylance",
     "python.analysis.typeCheckingMode": "basic",
-    "python.pythonPath": "${workplaceFolder}/.venv/fastmsa",
+    "python.pythonPath": "${workspaceFolder}/.venv/fastmsa",
     "editor.formatOnSave": true,
 }
